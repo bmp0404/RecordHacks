@@ -85,18 +85,53 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
   );
 };
 
-// Update in App.js
+// Update DynamicPage to include a song name search instead of track ID input
 const DynamicPage = ({ title, spotifyId, bubbleId, currentUserId }) => {
   const navigate = useNavigate();
+  // Add state for the track ID and search input
+  const [trackId, setTrackId] = useState(spotifyId || '1KdjbgMfPmQQANYVS2IfTJ');
+  const [searchInput, setSearchInput] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
   const handleLeaveBubble = async () => {
     try {
       await axios.put(`http://localhost:3001/bubbles/${bubbleId}/leave`, { userId: currentUserId });
       console.log('Left bubble');
-      // Optionally navigate back to Home after leaving
       navigate('/');
     } catch (error) {
       console.error('Error leaving bubble:', error.response?.data || error.message);
+    }
+  };
+
+  // Search for a track by name and get the top result's ID
+  const handleTrackSearch = async (e) => {
+    e.preventDefault();
+    if (!searchInput.trim()) return;
+
+    setIsSearching(true);
+    setSearchError('');
+    
+    try {
+      // Send the search query to your backend, which will proxy to Spotify API
+      const response = await axios.get(`http://localhost:3001/player/search?q=${encodeURIComponent(searchInput)}`);
+      
+      if (response.data && response.data.tracks && response.data.tracks.items.length > 0) {
+        // Get the first (top) result's ID
+        const newTrackId = response.data.tracks.items[0].id;
+        console.log(`Found track: ${response.data.tracks.items[0].name} by ${response.data.tracks.items[0].artists[0].name}`);
+        
+        // Update the track ID state
+        setTrackId(newTrackId);
+        setSearchInput(''); // Clear input after successful search
+      } else {
+        setSearchError('No songs found matching that name. Try another search.');
+      }
+    } catch (error) {
+      console.error('Error searching for track:', error);
+      setSearchError('Unable to search for songs right now. Please try again later.');
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -115,23 +150,75 @@ const DynamicPage = ({ title, spotifyId, bubbleId, currentUserId }) => {
         gap: '20px',
         alignItems: 'flex-start'
       }}>
-        {/* Spotify Embed - Left side */}
-        <div className="spotify-container" style={{ 
-          width: '30%', 
-          borderRadius: '12px',
-          overflow: 'hidden',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
-        }}>
-          <iframe 
-            style={{ borderRadius: '12px' }} 
-            src={`https://open.spotify.com/embed/track/1KdjbgMfPmQQANYVS2IfTJ?utm_source=generator`}
-            width="100%" 
-            height="352" 
-            frameBorder="0" 
-            allowFullScreen=""
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-            loading="lazy"
-          ></iframe>
+        {/* Left side column with Spotify embed and track search */}
+        <div style={{ width: '30%', display: 'flex', flexDirection: 'column' }}>
+          {/* Spotify Embed */}
+          <div className="spotify-container" style={{ 
+            width: '100%', 
+            borderRadius: '12px',
+            overflow: 'hidden',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
+          }}>
+            <iframe 
+              style={{ borderRadius: '12px' }} 
+              src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator`}
+              width="100%" 
+              height="352" 
+              frameBorder="0" 
+              allowFullScreen=""
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+              loading="lazy"
+            ></iframe>
+          </div>
+          
+          {/* Song name search form */}
+          <form 
+            onSubmit={handleTrackSearch}
+            style={{
+              marginTop: '15px',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}
+          >
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search for a song by name"
+              style={{
+                padding: '10px',
+                borderRadius: '8px',
+                border: 'none',
+                background: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                fontSize: '0.9rem',
+                width: '100%'
+              }}
+            />
+            {searchError && (
+              <div style={{ color: '#ff6b6b', fontSize: '0.85rem', marginTop: '-5px' }}>
+                {searchError}
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={isSearching}
+              style={{
+                padding: '10px',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#1DB954', // Spotify green
+                color: 'white',
+                fontWeight: '600',
+                cursor: isSearching ? 'wait' : 'pointer',
+                opacity: isSearching ? 0.7 : 1,
+              }}
+            >
+              {isSearching ? 'Searching...' : 'Find Song'}
+            </button>
+          </form>
         </div>
         
         {/* ChatBox - Right side with adjustable height */}
@@ -142,15 +229,9 @@ const DynamicPage = ({ title, spotifyId, bubbleId, currentUserId }) => {
           />
         </div>
       </div>
-      
-      {/* Leave Bubble Button */}
-      <button onClick={handleLeaveBubble}>
-        Leave Bubble
-      </button>
-      
       <button
         className="back-button"
-        onClick={() => navigate('/')}
+        onClick={handleLeaveBubble}
       >
         ← Back to Home
       </button>
@@ -184,7 +265,7 @@ const LoginPage = () => {
       // setAuthData({ access_token, refresh_token, expiresAt, spotifyId, displayName });
       
       // Optionally navigate to the dashboard
-      navigate('/dashboard');
+      navigate('/');
     });
   };
   
@@ -356,7 +437,14 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
             <Route
               key={page.id}
               path={page.path}
-              element={<DynamicPage title={page.title} spotifyId={page.spotifyId} />}
+              element={
+                <DynamicPage 
+                  title={page.title} 
+                  spotifyId={page.spotifyId} 
+                  bubbleId={page.bubbleId} // Add the bubbleId
+                  currentUserId="user123" // Replace with actual user ID from your auth system
+                />
+              }
             />
           ))}
         </Routes>
