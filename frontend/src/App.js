@@ -9,35 +9,6 @@ import axios from 'axios'; // Add this import for axios
 // In the HomePage component - removed spotifyInput and setSpotifyInput
 const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => {
   const navigate = useNavigate();
-  
-  const handleLoginClick = async () => {
-    try {
-      // Send GET request using axios instead of fetch
-      const response = await axios.get('http://localhost:3001/auth/login', {
-        headers: {
-          'Content-Type': 'application/json'
-          // Note: If you need to use a Bearer token later, you would add:
-          // 'Authorization': `Bearer ${yourAccessToken}`
-        },
-        withCredentials: true // This replaces 'credentials: include' for cookies
-      });
-      
-      // Axios automatically parses JSON responses
-      const data = response.data;
-      
-      console.log('Login request successful:', data);
-      // Navigate to login page or handle successful login
-      navigate('/login');
-    } catch (error) {
-      console.error('Error during login request:', error);
-      // Error handling - still navigate to login page
-      // You can access error.response for more details if available
-      if (error.response) {
-        console.error('Response error data:', error.response.data);
-      }
-      navigate('/login');
-    }
-  };
 
   return (
     <div className="page" style={{ 
@@ -58,7 +29,7 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
       }}>
         <button 
           className="login-button"
-          onClick={handleLoginClick}
+          onClick={() => navigate('/login')}
           style={{
             padding: '10px 20px',
             borderRadius: '0 0 8px 0',
@@ -172,6 +143,67 @@ const DynamicPage = ({ title, spotifyId }) => {
 // Updated LoginPage with multiple music service login options
 const LoginPage = () => {
   const navigate = useNavigate();
+
+  // const handleLoginClick = async () => {
+  //   try {
+  //     // Send GET request using axios instead of fetch
+  //     const response = await axios.get('http://localhost:3001/auth/login', {
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //         // Note: If you need to use a Bearer token later, you would add:
+  //         // 'Authorization': `Bearer ${yourAccessToken}`
+  //       },
+  //       withCredentials: true // This replaces 'credentials: include' for cookies
+  //     });
+      
+  //     // Axios automatically parses JSON responses
+  //     const data = response.data;
+      
+  //     console.log('Login request successful:', data);
+  //     // Navigate to login page or handle successful login
+  //     navigate('/login');
+  //   } catch (error) {
+  //     console.error('Error during login request:', error);
+  //     // Error handling - still navigate to login page
+  //     // You can access error.response for more details if available
+  //     if (error.response) {
+  //       console.error('Response error data:', error.response.data);
+  //     }
+  //     navigate('/login');
+  //   }
+  // };
+
+  // const handleLoginClick = () => {
+  //   window.location.href = 'http://localhost:3001/auth/login';
+  // };
+
+  const handleLoginClick = () => {
+    // Open a popup window for login
+    const popup = window.open(
+      'http://localhost:3001/auth/login',
+      'Spotify Login',
+      'width=500,height=600'
+    );
+  
+    // Listen for messages from the popup
+    window.addEventListener('message', (event) => {
+      // Verify the origin of the message for security
+      if (event.origin !== 'http://localhost:3001') return;
+  
+      // event.data should contain your tokens or user info
+      const { access_token, refresh_token, expiresAt, spotifyId, displayName } = event.data;
+      console.log('Received tokens:', event.data);
+  
+      // Now you can update your frontend state (e.g., store tokens, update user context, etc.)
+      // For example:
+      // setAuthData({ access_token, refresh_token, expiresAt, spotifyId, displayName });
+      
+      // Optionally navigate to the dashboard
+      navigate('/');
+    });
+  };
+  
+  
   
   return (
     <div className="page auth-page">
@@ -183,9 +215,7 @@ const LoginPage = () => {
           {/* Spotify Button */}
           <button 
             className="spotify-auth-button"
-            onClick={() => {
-              console.log('Spotify login clicked');
-            }}
+            onClick={(handleLoginClick)}
             style={{
               background: '#1DB954', // Spotify green
               padding: '12px 24px',

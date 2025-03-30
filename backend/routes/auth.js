@@ -8,14 +8,14 @@ const User = require('../models/User');
 
 // Login route for user by directing to Spotify's auth page
 router.get('/login', (req, res) => {
-  const state = crypto.randomBytes(16).toString('hex'); // protection against CSRF
-  const scope = 'user-modify-playback-state streaming user-read-private'; // scopes we require
+  const state = crypto.randomBytes(16).toString('hex'); // Protection against CSRF
+  const scope = 'user-modify-playback-state streaming user-read-private'; // Scopes we require
 
   const authQueryParams = querystring.stringify({
     response_type: 'code',
     client_id: process.env.SPOTIFY_CLIENT_ID,
     scope: scope,
-    redirect_uri: process.env.REDIRECT_URI,
+    redirect_uri: process.env.REDIRECT_URI, // This should point to your /auth/callback endpoint
     state: state,
     show_dialog: false
   });
@@ -26,10 +26,10 @@ router.get('/login', (req, res) => {
 // Callback route: handles Spotify's response after authentication
 router.get('/callback', async (req, res) => {
   try {
-    // 1. Extract authorization code from query parameters
+    // 1. Extract the authorization code from query parameters
     const { code } = req.query;
     
-    // 2. Exchange authorization code for access token
+    // 2. Exchange the authorization code for access and refresh tokens
     const tokenResponse = await axios.post(
       'https://accounts.spotify.com/api/token',
       querystring.stringify({
@@ -47,37 +47,55 @@ router.get('/callback', async (req, res) => {
       }
     );
     
-    // 3. Fetch user profile using the access token
+    // 3. Fetch the user profile using the access token
     const profileResponse = await axios.get('https://api.spotify.com/v1/me', {
       headers: {
         'Authorization': `Bearer ${tokenResponse.data.access_token}`
       }
     });
     
-    // 4. Create/update user in MongoDB using the User model
+    // 4. Create or update the user in MongoDB using the User model
     const user = await User.findOneAndUpdate(
-      { spotifyId: profileResponse.data.id }, // Use Spotify ID as unique identifier
+      { spotifyId: profileResponse.data.id }, // Use Spotify ID as the unique identifier
       {
         spotifyId: profileResponse.data.id,
         displayName: profileResponse.data.display_name,
         accessToken: tokenResponse.data.access_token,
         refreshToken: tokenResponse.data.refresh_token,
-        expiresAt: new Date(Date.now() + tokenResponse.data.expires_in * 1000) // Convert expires_in to a Date
+        expiresAt: new Date(Date.now() + tokenResponse.data.expires_in * 1000)
       },
       {
         upsert: true, // Create the user if they don't exist
-        new: true,   // Return the new document
+        new: true,   // Return the updated document
         setDefaultsOnInsert: true
       }
     );
-
-    try {
-      return res.redirect(`/player/play?userId=${profileResponse.data.id}`);
-    } catch (error) {
-      console.error('Authentication error:', error);
-      res.status(500).send('Authentication failed', error);
-    }
-  
+    
+    // 5. Render an HTML page that sends the auth data back to the main window and then closes the popup
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Authentication Successful</title>
+        </head>
+        <body>
+          <script>
+            // Post the authentication data back to the opener window
+            window.opener.postMessage({
+              accessToken: "${tokenResponse.data.access_token}",
+              refreshToken: "${tokenResponse.data.refresh_token}",
+              expiresAt: "${new Date(Date.now() + tokenResponse.data.expires_in * 1000).toISOString()}",
+              spotifyId: "${profileResponse.data.id}",
+              displayName: "${profileResponse.data.display_name}"
+            }, "http://localhost:3000");
+            // Close the popup window
+            window.close();
+          </script>
+          <p>Authentication successful. You can close this window.</p>
+        </body>
+      </html>
+    `);
+    
   } catch (error) {
     console.error('Authentication error:', error);
     res.status(500).send('Authentication failed');
