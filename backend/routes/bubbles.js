@@ -67,6 +67,27 @@ router.put('/:id/leave', async (req, res) => {
 });
 
 
+// Deleting a bubble: DELETE /api/bubbles/:id
+router.delete('/:id', async (req, res) => {
+  try {
+    const bubble = await Bubble.findByIdAndDelete(req.params.id);
+    if (!bubble) {
+      return res.status(404).json({error: 'Bubble not found'});
+    }
+    else {
+      const bubbles = await Bubble.find({});
+      res.json(bubbles); // returning remaining bubbles
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// 67e8e080f02e48494dea685e
+
+
+
 module.exports = router;
 // This code defines the routes for creating, listing, joining, and leaving bubbles.
 // The routes interact with the Bubble model to perform CRUD operations.
