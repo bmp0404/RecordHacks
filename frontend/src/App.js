@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 import Jam from './components/Jam';
+import ChatBox from './components/Chatbox';
 
 // In the HomePage component - removed spotifyInput and setSpotifyInput
 const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => {
@@ -80,7 +81,7 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
   );
 };
 
-// Update DynamicPage to include Spotify embedding with default ID
+// Update DynamicPage to include Spotify embedding and ChatBox side by side
 const DynamicPage = ({ title, spotifyId }) => {
   const navigate = useNavigate();
   
@@ -88,18 +89,40 @@ const DynamicPage = ({ title, spotifyId }) => {
     <div className="dynamic-page">
       <h1>{title}</h1>
       
-      {/* Spotify Embed */}
-      <div className="spotify-container" style={{ width: '30%', maxWidth: '800px', margin: '20px auto' }}>
-        <iframe 
-          style={{ borderRadius: '12px' }} 
-          src={`https://open.spotify.com/embed/track/1KdjbgMfPmQQANYVS2IfTJ?utm_source=generator`}
-          width="100%" 
-          height="352" 
-          frameBorder="0" 
-          allowFullScreen=""
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-          loading="lazy"
-        ></iframe>
+      {/* Container for side-by-side layout */}
+      <div className="content-container" style={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '90%',
+        maxWidth: '1200px',
+        margin: '20px auto',
+        gap: '20px',
+        alignItems: 'flex-start'
+      }}>
+        {/* Spotify Embed - Left side */}
+        <div className="spotify-container" style={{ 
+          width: '55%', 
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
+        }}>
+          <iframe 
+            style={{ borderRadius: '12px' }} 
+            src={`https://open.spotify.com/embed/track/1KdjbgMfPmQQANYVS2IfTJ?utm_source=generator`}
+            width="100%" 
+            height="352" 
+            frameBorder="0" 
+            allowFullScreen=""
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+            loading="lazy"
+          ></iframe>
+        </div>
+        
+        {/* ChatBox - Right side */}
+        <div style={{ width: '45%' }}>
+          <ChatBox jamId={title.toLowerCase().replace(/\s+/g, '-')} />
+        </div>
       </div>
       
       <button
@@ -112,23 +135,22 @@ const DynamicPage = ({ title, spotifyId }) => {
   );
 };
 
-// Add this before the AppContent component
+// Updated LoginPage with multiple music service login options
 const LoginPage = () => {
   const navigate = useNavigate();
   
   return (
     <div className="page auth-page">
-      <h1>Login with Spotify</h1>
-      <div className="auth-form">
+      <h1>Connect Your Music</h1>
+      <div className="auth-form" style={{ width: '400px', maxWidth: '90%' }}>
         <div className="spotify-login-container">
-          <p>Connect your Spotify account to create and share music jams with the world.</p>
+          <p>Connect your favorite music service to create and share jams with the world.</p>
+          
+          {/* Spotify Button */}
           <button 
             className="spotify-auth-button"
             onClick={() => {
-              // In a real app, replace with actual Spotify OAuth
               console.log('Spotify login clicked');
-              // Placeholder: after successful auth, redirect back to homepage
-              // navigate('/');
             }}
             style={{
               background: '#1DB954', // Spotify green
@@ -148,6 +170,58 @@ const LoginPage = () => {
             }}
           >
             <span>Continue with Spotify</span>
+          </button>
+          
+          {/* Apple Music Button */}
+          <button 
+            className="apple-auth-button"
+            onClick={() => {
+              console.log('Apple Music login clicked');
+            }}
+            style={{
+              background: '#FA243C', // Apple Music red
+              padding: '12px 24px',
+              borderRadius: '25px',
+              color: 'white',
+              border: 'none',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              cursor: 'pointer',
+              width: '100%',
+              fontSize: '1rem',
+              marginTop: '20px'
+            }}
+          >
+            <span>Continue with Apple Music</span>
+          </button>
+          
+          {/* Amazon Music Button */}
+          <button 
+            className="amazon-auth-button"
+            onClick={() => {
+              console.log('Amazon Music login clicked');
+            }}
+            style={{
+              background: '#00A8E1', // Amazon Music blue
+              padding: '12px 24px',
+              borderRadius: '25px',
+              color: 'white',
+              border: 'none',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              cursor: 'pointer',
+              width: '100%',
+              fontSize: '1rem',
+              marginTop: '20px'
+            }}
+          >
+            <span>Continue with Amazon Music</span>
           </button>
         </div>
       </div>
