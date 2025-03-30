@@ -89,10 +89,10 @@ const DynamicPage = ({ title, spotifyId }) => {
       <h1>{title}</h1>
       
       {/* Spotify Embed */}
-      <div className="spotify-container" style={{ width: '100%', maxWidth: '800px', margin: '20px auto' }}>
+      <div className="spotify-container" style={{ width: '30%', maxWidth: '800px', margin: '20px auto' }}>
         <iframe 
           style={{ borderRadius: '12px' }} 
-          src={`https://open.spotify.com/embed/album/${spotifyId || '2WmJ5wp5wKBlIJE6FDAIBJ'}?utm_source=generator`}
+          src={`https://open.spotify.com/embed/track/1KdjbgMfPmQQANYVS2IfTJ?utm_source=generator`}
           width="100%" 
           height="352" 
           frameBorder="0" 
@@ -121,7 +121,7 @@ const LoginPage = () => {
       <h1>Login with Spotify</h1>
       <div className="auth-form">
         <div className="spotify-login-container">
-          <p>Connect your Spotify account to create and share music jams with friends.</p>
+          <p>Connect your Spotify account to create and share music jams with the world.</p>
           <button 
             className="spotify-auth-button"
             onClick={() => {
@@ -173,7 +173,7 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
   // Reset the body height and background when navigating
   React.useEffect(() => {
     // Set body background to match app background to avoid black bar
-    document.body.style.background = 'linear-gradient(135deg, #1a237e 0%, #4a148c 100%)';
+    document.body.style.background = 'linear-gradient(135deg, #2196F3 0%, #0D47A1 100%)';
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     
@@ -206,11 +206,11 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
         margin: 0,
         padding: 0,
         width: '100%', 
-        background: 'linear-gradient(135deg, #1a237e 0%, #4a148c 100%)',
-        // Only apply expanded padding on the homepage
+        // Change this line to use the same blue gradient
+        background: 'linear-gradient(135deg, #2196F3 0%, #0D47A1 100%)',
+        // Rest of the styles stay the same
         paddingBottom: location.pathname === '/' ? 
           `${Math.max(100, dynamicPages.length * 120)}px` : '0',
-        // Constrain height on dynamic pages
         ...(location.pathname !== '/' && !location.pathname.includes('login') ? { height: '100vh', maxHeight: '100vh' } : {})
       }}>
         <Routes>
@@ -250,7 +250,21 @@ function App() {
   
   // Random color generator
   const getRandomColor = () => {
-    const colors = ['#4CAF50', '#2196F3', '#f44336', '#FF9800', '#9C27B0', '#795548', '#607D8B'];
+    const colors = [
+      '#FF1E56',  // Vibrant pink/red
+      '#00DDFF',  // Bright cyan
+      '#FF9F1C',  // Vivid orange
+      '#7B4CFF',  // Electric purple
+      '#23F0C7',  // Bright teal
+      '#FF6B6B',  // Coral pink
+      '#32CD32',  // Lime green
+      '#FF3864',  // Hot pink
+      '#41EAD4',  // Turquoise
+      '#FFDE22',  // Bright yellow
+      '#B537F2',  // Violet
+      '#3D9AF1',  // Bright blue
+      '#00F5A0'   // Neon green
+    ];
     return colors[Math.floor(Math.random() * colors.length)];
   };
 

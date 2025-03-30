@@ -87,10 +87,12 @@ body, html {
 .page h1 {
   font-size: 4rem;
   margin-bottom: 0.5rem;
-  background: linear-gradient(to right, #00c6ff, #0072ff);
+  /* Change from light/medium blue to much darker blue gradient */
+  background: linear-gradient(to right, #052542, #03132A);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 2px 10px rgba(0,198,255,0.3);
+  /* Update shadow to match darker blue */
+  text-shadow: 0 2px 10px rgba(86, 143, 197, 0.6);
   animation: fadeIn 1.5s ease-out;
 }
 
