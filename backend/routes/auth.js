@@ -70,8 +70,14 @@ router.get('/callback', async (req, res) => {
         setDefaultsOnInsert: true
       }
     );
-    
-    return res.redirect(`/player/play?userId=${profileResponse.data.id}`);
+
+    try {
+      return res.redirect(`/player/play?userId=${profileResponse.data.id}`);
+    } catch (error) {
+      console.error('Authentication error:', error);
+      res.status(500).send('Authentication failed', error);
+    }
+  
   } catch (error) {
     console.error('Authentication error:', error);
     res.status(500).send('Authentication failed');
