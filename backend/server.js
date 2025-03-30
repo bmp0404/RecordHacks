@@ -9,7 +9,13 @@ const playerRouter = require('./routes/player')
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// Allow requests from your frontend's local host
+app.use(cors({
+  origin: 'http://localhost:3000',  // Frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(express.json());
 
 // Basic test route
