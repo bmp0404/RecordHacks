@@ -139,19 +139,26 @@ const DynamicPage = ({ title, spotifyId, bubbleId, currentUserId }) => {
     <div className="dynamic-page" style={{ paddingTop: '120px' }}>
       <h1>{title}</h1>
       
-      {/* Container for side-by-side layout */}
+      {/* Main content container - using row layout */}
       <div className="content-container" style={{
         display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        flexDirection: 'row',         // Changed to row to place elements side by side
+        justifyContent: 'center',     // Center horizontally
+        alignItems: 'flex-start',     // Align items to the top
         width: '90%',
         maxWidth: '1200px',
         margin: '20px auto',
-        gap: '20px',
-        alignItems: 'flex-start'
+        gap: '30px'
       }}>
-        {/* Left side column with Spotify embed and track search */}
-        <div style={{ width: '30%', display: 'flex', flexDirection: 'column' }}>
+        {/* Left column: Spotify embed + search form */}
+        <div style={{ 
+          width: '45%',
+          minWidth: '300px',
+          maxWidth: '500px',
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
           {/* Spotify Embed */}
           <div className="spotify-container" style={{ 
             width: '100%', 
@@ -171,7 +178,7 @@ const DynamicPage = ({ title, spotifyId, bubbleId, currentUserId }) => {
             ></iframe>
           </div>
           
-          {/* Song name search form */}
+          {/* Song name search form - directly under the embed */}
           <form 
             onSubmit={handleTrackSearch}
             style={{
@@ -221,17 +228,34 @@ const DynamicPage = ({ title, spotifyId, bubbleId, currentUserId }) => {
           </form>
         </div>
         
-        {/* ChatBox - Right side with adjustable height */}
-        <div style={{ width: '30%' }}>
+        {/* Right column: ChatBox */}
+        <div style={{ 
+          width: '45%', 
+          minWidth: '300px', 
+          maxWidth: '500px',
+          height: '100%' 
+        }}>
           <ChatBox 
             jamId={title.toLowerCase().replace(/\s+/g, '-')} 
-            height="365px" 
+            height="450px"  // Increased height to match Spotify + search form
           />
         </div>
       </div>
+
       <button
         className="back-button"
         onClick={handleLeaveBubble}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px',
+          padding: '8px 16px',
+          background: 'rgba(255,255,255,0.2)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
       >
         ← Back to Home
       </button>
