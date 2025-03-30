@@ -66,31 +66,93 @@ function App() {
     return colors[Math.floor(Math.random() * colors.length)];
   };
 
+  // Constants for Jam component sizing and positioning
+  const MIN_SIZE = 80;
+  const MAX_SIZE = 150;
+  const MIN_DISTANCE = 100; // Minimum distance between components
+
   // Function to create a new page
   const createNewPage = (e) => {
     e.preventDefault();
     if (newPageName.trim()) {
       const path = `/${newPageName.toLowerCase().replace(/\s+/g, '-')}`;
       
-      // Calculate the y-position for the new Jam (vertically stacked)
-      // Start at 100px and add 120px for each existing component
-      const yPosition = 100 + dynamicPages.length * 120;
+      // Generate a random size between MIN_SIZE and MAX_SIZE
+      const size = Math.floor(Math.random() * (MAX_SIZE - MIN_SIZE + 1)) + MIN_SIZE;
       
+      // Fixed positioning bounds for X-axis (these seem to work well)
+      const minX = -600;  // Left margin
+      const maxX = 400;   // Right boundary
+      
+      // Generate initial X position
+      let x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+      
+      // Improved Y position generation:
+      // First, determine the valid vertical range
+      const minY = 120; // Minimum Y to avoid header content
+      
+      // Find the maximum Y position of any existing component
+      let maxExistingY = minY;
+      if (dynamicPages.length > 0) {
+        maxExistingY = Math.max(...dynamicPages.map(page => page.y + page.size));
+      }
+      
+      // Set our max Y value with some padding for new components
+      const maxY = maxExistingY + 200;
+      
+      // Generate initial Y position anywhere within the valid range
+      let y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+      
+      // Make sure components maintain MIN_DISTANCE from each existing component
+      let validPosition = false;
+      let attempts = 0;
+      const maxAttempts = 30;
+      
+      while (!validPosition && attempts < maxAttempts) {
+        validPosition = true;
+        
+        // Check distance from each existing component
+        for (const page of dynamicPages) {
+          const distance = Math.sqrt(
+            Math.pow(x - page.x, 2) + 
+            Math.pow(y - page.y, 2)
+          );
+          
+          if (distance < MIN_DISTANCE) {
+            validPosition = false;
+            
+            // Try completely new random positions
+            x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+            y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+            
+            break;
+          }
+        }
+        
+        attempts++;
+      }
+      
+      // Rest of the function remains the same
       const newPage = {
         id: Date.now(),
         title: newPageName,
         path: path,
         color: getRandomColor(),
-        size: 100,
-        x: 50, // Fixed x position for vertical stacking
-        y: yPosition
+        size: size,
+        x: x,
+        y: y
       };
       
       setDynamicPages([...dynamicPages, newPage]);
-      setNewPageName(''); // Clear the input
+      setNewPageName('');
       
-      // If we have many components, ensure the page expands
-      document.body.style.minHeight = `${Math.max(1000, (dynamicPages.length + 1) * 150)}px`;
+      // Update the page's min height to accommodate components
+      // Use pageHeight instead of redeclaring maxY
+      const pageHeight = Math.max(
+        ...dynamicPages.map(page => page.y + page.size), 
+        y + size
+      );
+      document.body.style.minHeight = `${pageHeight + 200}px`;
     }
   };
 
