@@ -3,17 +3,23 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from
 import './App.css';
 import Jam from './components/Jam';
 
-// Move HomePage outside of App function
+// In the HomePage component
 const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => {
   const navigate = useNavigate();
   
   return (
-    <div className="page" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '100px' }}>
-      {/* Add login/signup buttons in top left */}
+    <div className="page" style={{ 
+      position: 'relative', 
+      minHeight: '100vh', 
+      paddingBottom: '100px',
+      paddingTop: '0',  // Explicitly set top padding to 0
+      margin: '0'       // Ensure no margin
+    }}>
+      {/* Login button in top left - with updated positioning */}
       <div className="auth-buttons" style={{ 
         position: 'absolute', 
-        top: '20px', 
-        left: '20px', 
+        top: '0',
+        left: '0',
         display: 'flex', 
         gap: '10px',
         zIndex: 100 
@@ -23,7 +29,7 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
           onClick={() => navigate('/login')}
           style={{
             padding: '10px 20px',
-            borderRadius: '8px',
+            borderRadius: '0 0 8px 0',
             background: 'linear-gradient(45deg, #2196F3, #0D47A1)',
             color: 'white',
             border: 'none',
@@ -32,30 +38,14 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
             boxShadow: '0 4px 6px rgba(0,0,0,0.15)'
           }}
         >
-          Login
-        </button>
-        <button 
-          className="signup-button"
-          onClick={() => navigate('/signup')}
-          style={{
-            padding: '10px 20px',
-            borderRadius: '8px',
-            background: 'linear-gradient(45deg, #9C27B0, #4A148C)',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer',
-            fontWeight: '600',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.15)'
-          }}
-        >
-          Sign Up
+          Login with Spotify 
         </button>
       </div>
 
       <h1>Bubblr</h1>
       <h2>Explore Music Together</h2>
       
-      {/* Dynamic navigation buttons */}
+      {/* Add this section to render Jam components */}
       {dynamicPages.map((page) => (
         <Jam 
           key={page.id}
@@ -67,8 +57,8 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
           y={page.y}
         />
       ))}
-
-      {/* Form to create new pages */}
+      
+      {/* Add form for creating new jams */}
       <div className="create-jam-form" style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 100 }}>
         <form onSubmit={createNewPage}>
           <input
@@ -81,77 +71,13 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
             className="create-jam-button"
             type="submit"
           >
-            Start a Jam
+            Create a Jam
           </button>
         </form>
       </div>
     </div>
   );
 };
-
-// Create Login and Signup page components
-const LoginPage = () => {
-  const navigate = useNavigate();
-  
-  return (
-    <div className="page auth-page">
-      <h1>Login</h1>
-      <div className="auth-form">
-        <form>
-          <div className="form-group">
-            <label>Email</label>
-            <input type="email" placeholder="Enter your email" />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input type="password" placeholder="Enter your password" />
-          </div>
-          <button type="submit" className="auth-button">Login</button>
-        </form>
-      </div>
-      <button
-        className="back-button"
-        onClick={() => navigate('/')}
-      >
-        ← Back to Home
-      </button>
-    </div>
-  );
-};
-
-const SignupPage = () => {
-  const navigate = useNavigate();
-  
-  return (
-    <div className="page auth-page">
-      <h1>Sign Up</h1>
-      <div className="auth-form">
-        <form>
-          <div className="form-group">
-            <label>Email</label>
-            <input type="email" placeholder="Enter your email" />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input type="password" placeholder="Create a password" />
-          </div>
-          <div className="form-group">
-            <label>Confirm Password</label>
-            <input type="password" placeholder="Confirm your password" />
-          </div>
-          <button type="submit" className="auth-button">Create Account</button>
-        </form>
-      </div>
-      <button
-        className="back-button"
-        onClick={() => navigate('/')}
-      >
-        ← Back to Home
-      </button>
-    </div>
-  );
-};
-
 
 // Convert DynamicPage to a function that can use hooks
 const DynamicPage = ({ title }) => {
@@ -172,6 +98,60 @@ const DynamicPage = ({ title }) => {
   );
 };
 
+// Add this before the AppContent component
+const LoginPage = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="page auth-page">
+      <h1>Login with Spotify</h1>
+      <div className="auth-form">
+        <div className="spotify-login-container">
+          <p>Connect your Spotify account to create and share music jams with friends.</p>
+          <button 
+            className="spotify-auth-button"
+            onClick={() => {
+              // In a real app, replace with actual Spotify OAuth
+              console.log('Spotify login clicked');
+              // Placeholder: after successful auth, redirect back to homepage
+              // navigate('/');
+            }}
+            style={{
+              background: '#1DB954', // Spotify green
+              padding: '12px 24px',
+              borderRadius: '25px',
+              color: 'white',
+              border: 'none',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              cursor: 'pointer',
+              width: '100%',
+              fontSize: '1rem',
+              marginTop: '20px'
+            }}
+          >
+            <span>Continue with Spotify</span>
+          </button>
+        </div>
+      </div>
+      <button
+        className="back-button"
+        onClick={() => navigate('/')}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px'
+        }}
+      >
+        ← Back to Home
+      </button>
+    </div>
+  );
+};
+
 // App content component that can use routing hooks
 const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => {
   const location = useLocation();
@@ -183,7 +163,7 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     
-    if (location.pathname !== '/' && !location.pathname.includes('login') && !location.pathname.includes('signup')) {
+    if (location.pathname !== '/' && !location.pathname.includes('login')) {
       document.body.style.height = '100vh';
       document.body.style.minHeight = '100vh';
       document.body.style.overflow = 'hidden';
@@ -205,7 +185,7 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
       padding: 0,
       overflowX: 'hidden',
       // Constrain height on dynamic pages
-      ...(location.pathname !== '/' && !location.pathname.includes('login') && !location.pathname.includes('signup') ? { height: '100vh', overflow: 'hidden' } : {})
+      ...(location.pathname !== '/' && !location.pathname.includes('login') ? { height: '100vh', overflow: 'hidden' } : {})
     }}>
       <header className="App-header" style={{ 
         minHeight: '100vh',
@@ -217,7 +197,7 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
         paddingBottom: location.pathname === '/' ? 
           `${Math.max(100, dynamicPages.length * 120)}px` : '0',
         // Constrain height on dynamic pages
-        ...(location.pathname !== '/' && !location.pathname.includes('login') && !location.pathname.includes('signup') ? { height: '100vh', maxHeight: '100vh' } : {})
+        ...(location.pathname !== '/' && !location.pathname.includes('login') ? { height: '100vh', maxHeight: '100vh' } : {})
       }}>
         <Routes>
           {/* Main routes */}
@@ -233,7 +213,6 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
             } 
           />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
           
           {/* Generate routes for each dynamic page */}
           {dynamicPages.map(page => (

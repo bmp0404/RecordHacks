@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// Renamed from Bubble to Jam
 const Jam = ({ destination, label, color, size = 100, x, y }) => {
   const navigate = useNavigate();
   
@@ -14,7 +15,7 @@ const Jam = ({ destination, label, color, size = 100, x, y }) => {
         backgroundColor: color || '#4CAF50',
         color: 'white',
         border: 'none',
-        borderRadius: '50%', // Makes it circular
+        borderRadius: '50%',
         cursor: 'pointer',
         margin: '10px',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
