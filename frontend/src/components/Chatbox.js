@@ -16,9 +16,10 @@ const ChatBox = ({ jamId, height = '400px' }) => {  // Added height prop with de
     const fetchMessages = async () => {
       // Simulate loading messages with dummy data
       const dummyMessages = [
-        { id: 1, user: 'Sophie', text: 'I love this track!', timestamp: new Date(Date.now() - 900000).toISOString() },
-        { id: 2, user: 'Mike', text: 'The beat is amazing', timestamp: new Date(Date.now() - 600000).toISOString() },
-        { id: 3, user: 'Jamie', text: 'Who\'s the producer?', timestamp: new Date(Date.now() - 300000).toISOString() }
+        { id: 1, user: 'Rohan', text: 'I love this track!', timestamp: new Date(Date.now() - 900000).toISOString() },
+        { id: 2, user: 'Krish', text: 'The beat is amazing', timestamp: new Date(Date.now() - 600000).toISOString() },
+        { id: 3, user: 'Vedant', text: 'Who\'s the producer?', timestamp: new Date(Date.now() - 300000).toISOString() },
+        { id: 4, user: 'Ayaan', text: 'This app is so cool!!!', timestamp: new Date(Date.now() - 100000).toISOString() }
       ];
       
       setMessages(dummyMessages);

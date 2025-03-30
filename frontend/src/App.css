@@ -2,50 +2,18 @@
   text-align: center;
 }
 
-/* Add these to your App.css */
-body, html {
-  margin: 0;
-  padding: 0;
-}
-
-.page {
-  margin: 0;
-  padding-top: 0;
-}
-
-h1, h2 {
-  margin-top: 0;
-}
-
-/* Update the auth-buttons class */
-.auth-buttons {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: flex;
-  gap: 10px;
-  z-index: 100;
-}
-
 /* Base styling */
 body, html {
   margin: 0 !important;
   padding: 0 !important;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #1a237e;  /* Match the start of the gradient */
+  background-color: #1a237e;
   color: white;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
 #root {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-}
-
-.App {
-  text-align: center;
   margin: 0;
   padding: 0;
   min-height: 100vh;
@@ -66,21 +34,22 @@ body, html {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Homepage styling (Expandable) */
+/* Homepage styling */
 .page {
   position: relative;
   min-height: 100vh;
   padding-bottom: 100px;
+  margin: 0;
+  padding-top: 0;
 }
 
 .page h1 {
   font-size: 4rem;
   margin-bottom: 0.5rem;
-  /* Change from light/medium blue to much darker blue gradient */
+  margin-top: 0;
   background: linear-gradient(to right, #052542, #03132A);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  /* Update shadow to match darker blue */
   text-shadow: 0 2px 10px rgba(86, 143, 197, 0.6);
   animation: fadeIn 1.5s ease-out;
 }
@@ -94,7 +63,29 @@ body, html {
   animation: fadeIn 1.5s ease-out;
 }
 
-/* Form styling – no animation */
+/* Auth buttons */
+.auth-buttons {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+}
+
+/* Updated login button with a different blue color */
+.login-button {
+  padding: 10px 20px;
+  border-radius: 0 0 8px 0;
+  background: linear-gradient(45deg,  #031d32, #0D47A1); /* New different blue color */
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+}
+
+/* Form styling */
 .create-jam-form {
   background: rgba(255,255,255,0.1);
   backdrop-filter: blur(10px);
@@ -147,11 +138,11 @@ body, html {
 
 /* Add proper CSS for highlight animation */
 @keyframes pulseHighlight {
-  0% { filter: brightness(1); }
-  25% { filter: brightness(1.5); }
-  50% { filter: brightness(1); }
-  75% { filter: brightness(1.5); }
-  100% { filter: brightness(1); }
+  0% { filter: brightness(.3); }
+  25% { filter: brightness(.8); }
+  50% { filter: brightness(.3); }
+  75% { filter: brightness(.8); }
+  100% { filter: brightness(.3); }
 }
 
 .jam-highlight {
@@ -159,7 +150,7 @@ body, html {
   animation: pulseHighlight 2s;
 }
 
-/* Dynamic page styling (Fixed to viewport height) */
+/* Dynamic page styling */
 .dynamic-page {
   padding: 2rem;
   display: flex;
@@ -181,12 +172,12 @@ body, html {
   animation: fadeIn 1.5s ease-out;
 }
 
-/* Back button styling with no initial animation */
+/* Back button styling */
 .back-button {
   position: fixed;
   top: 20px;
   left: 20px;
-  background: linear-gradient(45deg, #2196F3, #0D47A1);
+  background: linear-gradient(45deg, #031d32, #0D47A1);
   color: white;
   border: none;
   border-radius: 8px;
@@ -207,7 +198,7 @@ body, html {
   box-shadow: 0 7px 10px rgba(0,0,0,0.25);
 }
 
-/* Auth pages styling - UPDATED */
+/* Auth pages styling */
 .auth-page {
   display: flex;
   flex-direction: column;
@@ -238,121 +229,10 @@ body, html {
   text-align: left;
 }
 
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: white;
-  font-weight: 500;
-  font-size: 0.95rem;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 12px 15px;
-  border-radius: 8px;
-  border: none;
-  background: rgba(255,255,255,0.25);
-  color: white;
-  font-size: 1rem;
-  box-sizing: border-box;
-}
-
-.form-group input::placeholder {
-  color: rgba(255,255,255,0.8);
-  opacity: 0.8;
-}
-
-.form-group input:focus {
-  outline: none;
-  background: rgba(255,255,255,0.3);
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
-}
-
-.auth-button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background: linear-gradient(45deg, #4CAF50, #2E7D32);
-  color: white;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  margin-top: 20px;
-  box-sizing: border-box;
-}
-
-.auth-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 7px 10px rgba(0,0,0,0.2);
-}
-
-/* Make sure auth-page specific back button has correct positioning */
-.auth-page .back-button {
-  margin-top: 30px;
-  position: absolute;
-  top: 20px;
-  left: 20px;
-}
-
-/* Update these class names if you changed them in the JSX */
-.create-bubble-form {
-  background: rgba(188, 169, 169, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
-  padding: 25px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.1);
-  animation: none !important;
-  transform: none !important;
-}
-
-.create-bubble-form input {
-  background: rgba(255,255,255,0.2);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  padding: 12px 15px;
-  font-size: 1rem;
-  width: 250px;
-  transition: all 0.3s;
-}
-
-.create-bubble-button {
-  background: linear-gradient(45deg, #4CAF50, #2E7D32);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-weight: 600;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-/* Add this to your App.css */
-.auth-buttons {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  display: flex;
-  gap: 10px;
-  z-index: 100;
-}
-
-.login-button {
-  padding: 8px 16px;
-  border-radius: 8px;
-  background: linear-gradient(45deg, #04121e, #0D47A1);
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+/* Spotify container */
+.spotify-container {
+  margin: 30px auto;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }

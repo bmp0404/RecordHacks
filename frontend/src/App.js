@@ -31,7 +31,6 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
           style={{
             padding: '10px 20px',
             borderRadius: '0 0 8px 0',
-            background: 'linear-gradient(45deg, #2196F3, #0D47A1)',
             color: 'white',
             border: 'none',
             cursor: 'pointer',
