@@ -1,58 +1,253 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 import Jam from './components/Jam';
 
 // Move HomePage outside of App function
-const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => (
-  <div className="page" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '100px' }}>
-    {/* Dynamic navigation buttons */}
-    {dynamicPages.map((page) => (
-      <Jam 
-        key={page.id}
-        destination={page.path} 
-        label={page.title} 
-        color={page.color} 
-        size={page.size || 100} 
-        x={page.x}
-        y={page.y}
-      />
-    ))}
-
-    {/* Form to create new pages */}
-    <div style={{ position: 'fixed', bottom: '20px', left: '20px', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '10px', zIndex: 100 }}>
-      <form onSubmit={createNewPage}>
-        <input
-          type="text"
-          value={newPageName}
-          onChange={(e) => setNewPageName(e.target.value)}
-          placeholder="Enter page name"
-          style={{ padding: '10px', marginRight: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
-        />
+const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="page" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '100px' }}>
+      {/* Add login/signup buttons in top left */}
+      <div className="auth-buttons" style={{ 
+        position: 'absolute', 
+        top: '20px', 
+        left: '20px', 
+        display: 'flex', 
+        gap: '10px',
+        zIndex: 100 
+      }}>
         <button 
-          type="submit"
-          style={{ 
-            padding: '10px 20px', 
-            backgroundColor: '#4CAF50', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px', 
-            cursor: 'pointer' 
+          className="login-button"
+          onClick={() => navigate('/login')}
+          style={{
+            padding: '10px 20px',
+            borderRadius: '8px',
+            background: 'linear-gradient(45deg, #2196F3, #0D47A1)',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer',
+            fontWeight: '600',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.15)'
           }}
         >
-          Create Page
+          Login
         </button>
-      </form>
-    </div>
-  </div>
-);
+        <button 
+          className="signup-button"
+          onClick={() => navigate('/signup')}
+          style={{
+            padding: '10px 20px',
+            borderRadius: '8px',
+            background: 'linear-gradient(45deg, #9C27B0, #4A148C)',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer',
+            fontWeight: '600',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.15)'
+          }}
+        >
+          Sign Up
+        </button>
+      </div>
 
-// Dynamic page component - also moved outside App
-const DynamicPage = ({ title }) => (
-  <div className="page" style={{ position: 'relative', minHeight: '100vh' }}>
-    <h1>{title}</h1>
-  </div>
-);
+      <h1>Bubblr</h1>
+      <h2>Explore Music Together</h2>
+      
+      {/* Dynamic navigation buttons */}
+      {dynamicPages.map((page) => (
+        <Jam 
+          key={page.id}
+          destination={page.path} 
+          label={page.title} 
+          color={page.color} 
+          size={page.size || 100} 
+          x={page.x}
+          y={page.y}
+        />
+      ))}
+
+      {/* Form to create new pages */}
+      <div className="create-jam-form" style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 100 }}>
+        <form onSubmit={createNewPage}>
+          <input
+            type="text"
+            value={newPageName}
+            onChange={(e) => setNewPageName(e.target.value)}
+            placeholder="Enter jam name"
+          />
+          <button 
+            className="create-jam-button"
+            type="submit"
+          >
+            Start a Jam
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Create Login and Signup page components
+const LoginPage = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="page auth-page">
+      <h1>Login</h1>
+      <div className="auth-form">
+        <form>
+          <div className="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="Enter your email" />
+          </div>
+          <div className="form-group">
+            <label>Password</label>
+            <input type="password" placeholder="Enter your password" />
+          </div>
+          <button type="submit" className="auth-button">Login</button>
+        </form>
+      </div>
+      <button
+        className="back-button"
+        onClick={() => navigate('/')}
+      >
+        ← Back to Home
+      </button>
+    </div>
+  );
+};
+
+const SignupPage = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="page auth-page">
+      <h1>Sign Up</h1>
+      <div className="auth-form">
+        <form>
+          <div className="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="Enter your email" />
+          </div>
+          <div className="form-group">
+            <label>Password</label>
+            <input type="password" placeholder="Create a password" />
+          </div>
+          <div className="form-group">
+            <label>Confirm Password</label>
+            <input type="password" placeholder="Confirm your password" />
+          </div>
+          <button type="submit" className="auth-button">Create Account</button>
+        </form>
+      </div>
+      <button
+        className="back-button"
+        onClick={() => navigate('/')}
+      >
+        ← Back to Home
+      </button>
+    </div>
+  );
+};
+
+
+// Convert DynamicPage to a function that can use hooks
+const DynamicPage = ({ title }) => {
+  const navigate = useNavigate();
+  
+  return (
+    // Remove the "page" class to prevent inheriting homepage styles
+    <div className="dynamic-page">
+      <h1>{title}</h1>
+      
+      <button
+        className="back-button"
+        onClick={() => navigate('/')}
+      >
+        ← Back to Home
+      </button>
+    </div>
+  );
+};
+
+// App content component that can use routing hooks
+const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => {
+  const location = useLocation();
+  
+  // Reset the body height and background when navigating
+  React.useEffect(() => {
+    // Set body background to match app background to avoid black bar
+    document.body.style.background = 'linear-gradient(135deg, #1a237e 0%, #4a148c 100%)';
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    
+    if (location.pathname !== '/' && !location.pathname.includes('login') && !location.pathname.includes('signup')) {
+      document.body.style.height = '100vh';
+      document.body.style.minHeight = '100vh';
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restore expandable size for homepage
+      const maxHeight = dynamicPages.length > 0 
+        ? Math.max(...dynamicPages.map(page => page.y + page.size)) + 200
+        : '100vh';
+      document.body.style.minHeight = `${maxHeight}px`;
+      document.body.style.height = 'auto';
+      document.body.style.overflow = 'auto';
+    }
+  }, [location.pathname, dynamicPages]);
+  
+  return (
+    <div className="App" style={{ 
+      minHeight: '100vh',
+      margin: 0,
+      padding: 0,
+      overflowX: 'hidden',
+      // Constrain height on dynamic pages
+      ...(location.pathname !== '/' && !location.pathname.includes('login') && !location.pathname.includes('signup') ? { height: '100vh', overflow: 'hidden' } : {})
+    }}>
+      <header className="App-header" style={{ 
+        minHeight: '100vh',
+        margin: 0,
+        padding: 0,
+        width: '100%', 
+        background: 'linear-gradient(135deg, #1a237e 0%, #4a148c 100%)',
+        // Only apply expanded padding on the homepage
+        paddingBottom: location.pathname === '/' ? 
+          `${Math.max(100, dynamicPages.length * 120)}px` : '0',
+        // Constrain height on dynamic pages
+        ...(location.pathname !== '/' && !location.pathname.includes('login') && !location.pathname.includes('signup') ? { height: '100vh', maxHeight: '100vh' } : {})
+      }}>
+        <Routes>
+          {/* Main routes */}
+          <Route 
+            path="/" 
+            element={
+              <HomePage 
+                dynamicPages={dynamicPages} 
+                newPageName={newPageName} 
+                setNewPageName={setNewPageName} 
+                createNewPage={createNewPage}
+              />
+            } 
+          />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          
+          {/* Generate routes for each dynamic page */}
+          {dynamicPages.map(page => (
+            <Route
+              key={page.id}
+              path={page.path}
+              element={<DynamicPage title={page.title} />}
+            />
+          ))}
+        </Routes>
+      </header>
+    </div>
+  );
+};
 
 function App() {
   // State to store dynamically created pages
@@ -81,8 +276,8 @@ function App() {
       const size = Math.floor(Math.random() * (MAX_SIZE - MIN_SIZE + 1)) + MIN_SIZE;
       
       // Fixed positioning bounds for X-axis (these seem to work well)
-      const minX = -600;  // Left margin
-      const maxX = 400;   // Right boundary
+      const minX = 0;  // Left margin
+      const maxX = 1000;   // Right boundary
       
       // Generate initial X position
       let x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
@@ -132,7 +327,6 @@ function App() {
         attempts++;
       }
       
-      // Rest of the function remains the same
       const newPage = {
         id: Date.now(),
         title: newPageName,
@@ -147,7 +341,6 @@ function App() {
       setNewPageName('');
       
       // Update the page's min height to accommodate components
-      // Use pageHeight instead of redeclaring maxY
       const pageHeight = Math.max(
         ...dynamicPages.map(page => page.y + page.size), 
         y + size
@@ -158,38 +351,12 @@ function App() {
 
   return (
     <Router>
-      <div className="App" style={{ minHeight: '100vh', overflowX: 'hidden' }}>
-        <header className="App-header" style={{ 
-          minHeight: '100vh', 
-          width: '100%', 
-          background: 'linear-gradient(135deg, #1a237e 0%, #4a148c 100%)',
-          paddingBottom: `${Math.max(100, dynamicPages.length * 120)}px` // Dynamic padding based on number of components
-        }}>
-          <h1>Bubblr</h1>
-          <h2>Explore Music Together</h2>
-          <Routes>
-            <Route 
-              path="/" 
-              element={
-                <HomePage 
-                  dynamicPages={dynamicPages} 
-                  newPageName={newPageName} 
-                  setNewPageName={setNewPageName} 
-                  createNewPage={createNewPage}
-                />
-              } 
-            />
-            {/* Dynamic routes */}
-            {dynamicPages.map(page => (
-              <Route
-                key={page.id}
-                path={page.path}
-                element={<DynamicPage title={page.title} />}
-              />
-            ))}
-          </Routes>
-        </header>
-      </div>
+      <AppContent 
+        dynamicPages={dynamicPages}
+        newPageName={newPageName}
+        setNewPageName={setNewPageName}
+        createNewPage={createNewPage}
+      />
     </Router>
   );
 }

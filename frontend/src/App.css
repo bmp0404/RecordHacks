@@ -2,37 +2,259 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+/* Base styling */
+body, html {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #1a237e;  /* Match the start of the gradient */
+  color: white;
   min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.App {
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* App header styling */
+.App-header {
+  background: linear-gradient(135deg, #1a237e 0%, #4a148c 100%);
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Homepage styling (Expandable) */
+.page {
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: 100px;
+}
+
+.page h1 {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(to right, #00c6ff, #0072ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 10px rgba(0,198,255,0.3);
+  animation: fadeIn 1.5s ease-out;
+}
+
+.page h2 {
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 2rem;
+  color: #e1e1e1;
+  font-weight: 300;
+  animation: fadeIn 1.5s ease-out;
+}
+
+/* Form styling – no animation */
+.create-jam-form {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  animation: none !important;
+  transform: none !important;
+}
+
+.create-jam-form input {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 12px 15px;
+  font-size: 1rem;
+  width: 250px;
+  transition: all 0.3s;
+}
+
+.create-jam-form input::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.create-jam-form input:focus {
+  outline: none;
+  background: rgba(255,255,255,0.25);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+}
+
+.create-jam-button {
+  background: linear-gradient(45deg, #4CAF50, #2E7D32);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.create-jam-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 10px rgba(0,0,0,0.2);
+}
+
+/* Dynamic page styling (Fixed to viewport height) */
+.dynamic-page {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh; 
+  max-height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.dynamic-page h1 {
+  font-size: 3.5rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(to right, #ff8a00, #e52e71);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 10px rgba(229,46,113,0.3);
+  animation: fadeIn 1.5s ease-out;
+}
+
+/* Back button styling with no initial animation */
+.back-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: linear-gradient(45deg, #2196F3, #0D47A1);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 22px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  animation: none !important;
+  transform: none !important;
+}
+
+.back-button:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 7px 10px rgba(0,0,0,0.25);
+}
+
+/* Auth pages styling - UPDATED */
+.auth-page {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  padding: 2rem;
+}
+
+.auth-page h1 {
+  margin-bottom: 2rem;
+  font-size: 3rem;
+  background: linear-gradient(to right, #00c6ff, #0072ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 10px rgba(0,198,255,0.3);
+}
+
+.auth-form {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 30px;
+  width: 350px;
+  max-width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.2);
+  margin-top: 20px;
+  text-align: left;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
   color: white;
+  font-weight: 500;
+  font-size: 0.95rem;
 }
 
-.App-link {
-  color: #61dafb;
+.form-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.25);
+  color: white;
+  font-size: 1rem;
+  box-sizing: border-box;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.form-group input::placeholder {
+  color: rgba(255,255,255,0.8);
+  opacity: 0.8;
+}
+
+.form-group input:focus {
+  outline: none;
+  background: rgba(255,255,255,0.3);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+}
+
+.auth-button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #4CAF50, #2E7D32);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 20px;
+  box-sizing: border-box;
+}
+
+.auth-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 10px rgba(0,0,0,0.2);
+}
+
+/* Make sure auth-page specific back button has correct positioning */
+.auth-page .back-button {
+  margin-top: 30px;
+  position: absolute;
+  top: 20px;
+  left: 20px;
 }
