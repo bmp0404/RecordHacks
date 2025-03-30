@@ -6,6 +6,7 @@ const { Schema } = mongoose;
 const bubbleSchema = new Schema({
   genreName: { type: String, required: true },
   activeUsers: [{ type: String }], // Array of user IDs (as strings)
+  currentTrack: { type: String, required: false},
   // Optionally, add more fields later (like currentTrack, queue, etc.)
 }, { timestamps: true });
 
