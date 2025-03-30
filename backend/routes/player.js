@@ -31,6 +31,26 @@ async function refreshAccessToken(user) {
     }
 }
 
+async function getClientCredentialsToken() {
+    try {
+        const response = await axios.post(
+            'https://accounts.spotify.com/api/token',
+            new URLSearchParams({
+                grant_type: 'client_credentials',
+                client_id: process.env.SPOTIFY_CLIENT_ID,
+                client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+            }),
+            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        );
+        
+        return response.data.access_token;
+    } catch (error) {
+        console.error('Error getting client credentials token:', error.response?.data || error.message);
+        throw new Error('Failed to get Spotify access token');
+    }
+}
+
+
 // Play a song using Spotify API
 router.get('/play', async (req, res) => {
     try {
@@ -57,6 +77,34 @@ router.get('/play', async (req, res) => {
     } catch (error) {
         console.error('Error playing song:', error.response?.data || error.message);
         res.status(500).json({ error: 'Failed to play the song' });
+    }
+});
+
+// Search for tracks by name and return the results
+router.get('/search', async (req, res) => {
+    const { q } = req.query;
+    
+    if (!q) {
+        return res.status(400).json({ error: 'Search query is required' });
+    }
+    
+    try {
+        // Get access token using client credentials (no user required)
+        const accessToken = await getClientCredentialsToken();
+        
+        // Search for tracks using Spotify API
+        const searchResponse = await axios.get(
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=5`,
+            { headers: { 'Authorization': `Bearer ${accessToken}` } }
+        );
+        
+        res.json(searchResponse.data);
+    } catch (error) {
+        console.error('Error searching Spotify:', error.response?.data || error.message);
+        res.status(500).json({ 
+            error: 'Failed to search Spotify',
+            details: error.response?.data || error.message
+        });
     }
 });
 

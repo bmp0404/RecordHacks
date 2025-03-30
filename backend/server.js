@@ -28,12 +28,19 @@ app.get('/', (req, res) => {
 // Use the bubbles router
 app.use('/bubbles', bubblesRouter);
 app.use('/auth', authRouter);
-app.use('/player', playerRouter)
-// Connect to MongoDB and then start the server
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Backend listening on port ${PORT}`);
+app.use('/player', playerRouter);
+
+// Map the spotify search route to the player router
+app.use('/spotify', playerRouter);
+
+// Start the server
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
   });
-});
-
-
