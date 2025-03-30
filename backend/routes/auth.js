@@ -70,7 +70,8 @@ router.get('/callback', async (req, res) => {
         setDefaultsOnInsert: true
       }
     );
-    return ;
+    
+    return res.redirect(`/player/play?userId=${profileResponse.data.id}`);
   } catch (error) {
     console.error('Authentication error:', error);
     res.status(500).send('Authentication failed');
