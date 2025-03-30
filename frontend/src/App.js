@@ -3,11 +3,42 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from
 import './App.css';
 import Jam from './components/Jam';
 import ChatBox from './components/Chatbox';
+import axios from 'axios'; // Add this import for axios
+
 
 // In the HomePage component - removed spotifyInput and setSpotifyInput
 const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => {
   const navigate = useNavigate();
   
+  const handleLoginClick = async () => {
+    try {
+      // Send GET request using axios instead of fetch
+      const response = await axios.get('http://localhost:3001/auth/login', {
+        headers: {
+          'Content-Type': 'application/json'
+          // Note: If you need to use a Bearer token later, you would add:
+          // 'Authorization': `Bearer ${yourAccessToken}`
+        },
+        withCredentials: true // This replaces 'credentials: include' for cookies
+      });
+      
+      // Axios automatically parses JSON responses
+      const data = response.data;
+      
+      console.log('Login request successful:', data);
+      // Navigate to login page or handle successful login
+      navigate('/login');
+    } catch (error) {
+      console.error('Error during login request:', error);
+      // Error handling - still navigate to login page
+      // You can access error.response for more details if available
+      if (error.response) {
+        console.error('Response error data:', error.response.data);
+      }
+      navigate('/login');
+    }
+  };
+
   return (
     <div className="page" style={{ 
       position: 'relative', 
@@ -27,7 +58,7 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
       }}>
         <button 
           className="login-button"
-          onClick={() => navigate('/login')}
+          onClick={handleLoginClick}
           style={{
             padding: '10px 20px',
             borderRadius: '0 0 8px 0',
