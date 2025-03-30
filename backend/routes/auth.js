@@ -70,10 +70,9 @@ router.get('/callback', async (req, res) => {
         setDefaultsOnInsert: true
       }
     );
-    
+    res.json(user)
     // 5. Redirect to dashboard with user ID and name as query parameters
-    res.redirect(`/dashboard?user=${user.spotifyId}&name=${encodeURIComponent(user.displayName)}`);
-    
+    res.redirect(`/bubbles`);
   } catch (error) {
     console.error('Authentication error:', error);
     res.status(500).send('Authentication failed');
