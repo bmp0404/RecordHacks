@@ -48,18 +48,20 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
       <h2>Explore Music Together</h2>
       
       {/* Add this section to render Jam components */}
-      {dynamicPages.map((page) => (
+      {dynamicPages.map(page => (
         <Jam 
-          key={page.id}
+          key={page.id} 
           destination={page.path} 
           label={page.title} 
           color={page.color} 
           size={page.size || 100} 
           x={page.x}
           y={page.y}
-          highlight={page.highlight} // Pass the highlight flag
-        />
-      ))}
+          highlight={page.highlight}
+          bubbleId={page.bubbleId}       // Pass the bubbleId here
+      />
+    ))}
+
       
       {/* Simplified form without Spotify input */}
       <div className="create-jam-form" style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 100 }}>
@@ -84,11 +86,22 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
 };
 
 // Update in App.js
-const DynamicPage = ({ title, spotifyId }) => {
+const DynamicPage = ({ title, spotifyId, bubbleId, currentUserId }) => {
   const navigate = useNavigate();
-  
+
+  const handleLeaveBubble = async () => {
+    try {
+      await axios.put(`http://localhost:3001/bubbles/${bubbleId}/leave`, { userId: currentUserId });
+      console.log('Left bubble');
+      // Optionally navigate back to Home after leaving
+      navigate('/');
+    } catch (error) {
+      console.error('Error leaving bubble:', error.response?.data || error.message);
+    }
+  };
+
   return (
-    <div className="dynamic-page" style={{ paddingTop: '120px' }}> {/* Increased padding for more space */}
+    <div className="dynamic-page" style={{ paddingTop: '120px' }}>
       <h1>{title}</h1>
       
       {/* Container for side-by-side layout */}
@@ -125,10 +138,15 @@ const DynamicPage = ({ title, spotifyId }) => {
         <div style={{ width: '30%' }}>
           <ChatBox 
             jamId={title.toLowerCase().replace(/\s+/g, '-')} 
-            height="365px" /* Match Spotify embed height */
+            height="365px" 
           />
         </div>
       </div>
+      
+      {/* Leave Bubble Button */}
+      <button onClick={handleLeaveBubble}>
+        Leave Bubble
+      </button>
       
       <button
         className="back-button"
@@ -143,39 +161,6 @@ const DynamicPage = ({ title, spotifyId }) => {
 // Updated LoginPage with multiple music service login options
 const LoginPage = () => {
   const navigate = useNavigate();
-
-  // const handleLoginClick = async () => {
-  //   try {
-  //     // Send GET request using axios instead of fetch
-  //     const response = await axios.get('http://localhost:3001/auth/login', {
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //         // Note: If you need to use a Bearer token later, you would add:
-  //         // 'Authorization': `Bearer ${yourAccessToken}`
-  //       },
-  //       withCredentials: true // This replaces 'credentials: include' for cookies
-  //     });
-      
-  //     // Axios automatically parses JSON responses
-  //     const data = response.data;
-      
-  //     console.log('Login request successful:', data);
-  //     // Navigate to login page or handle successful login
-  //     navigate('/login');
-  //   } catch (error) {
-  //     console.error('Error during login request:', error);
-  //     // Error handling - still navigate to login page
-  //     // You can access error.response for more details if available
-  //     if (error.response) {
-  //       console.error('Response error data:', error.response.data);
-  //     }
-  //     navigate('/login');
-  //   }
-  // };
-
-  // const handleLoginClick = () => {
-  //   window.location.href = 'http://localhost:3001/auth/login';
-  // };
 
   const handleLoginClick = () => {
     // Open a popup window for login
@@ -411,22 +396,15 @@ function App() {
   const MAX_SIZE = 200;
   const MIN_DISTANCE = 100; // Minimum distance between components
 
-  // Function to create a new page - with scroll and highlight functionality
   const createNewPage = (e) => {
     e.preventDefault();
     if (newPageName.trim()) {
       const path = `/${newPageName.toLowerCase().replace(/\s+/g, '-')}`;
-      // Use a default Spotify ID or one that you have for your user
       const spotifyId = '2WmJ5wp5wKBlIJE6FDAIBJ';
-  
-      // Generate random size between MIN_SIZE and MAX_SIZE
       const size = Math.floor(Math.random() * (MAX_SIZE - MIN_SIZE + 1)) + MIN_SIZE;
-      
-      // Determine fixed positioning bounds for X and Y
       const minX = 0;
       const maxX = 1000;
       let x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
-      
       const minY = 120;
       let maxExistingY = dynamicPages.length > 0 
         ? Math.max(...dynamicPages.map(page => page.y + page.size))
@@ -434,11 +412,9 @@ function App() {
       const maxY = maxExistingY + 200;
       let y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
       
-      // Ensure new component maintains minimum distance from existing components
       let validPosition = false;
       let attempts = 0;
       const maxAttempts = 30;
-      
       while (!validPosition && attempts < maxAttempts) {
         validPosition = true;
         for (const page of dynamicPages) {
@@ -454,7 +430,6 @@ function App() {
       }
       
       const newPageId = Date.now();
-      
       const newPage = {
         id: newPageId,
         title: newPageName,
@@ -463,41 +438,42 @@ function App() {
         size: size,
         x: x,
         y: y,
-        spotifyId: spotifyId, // Using default ID for now
+        spotifyId: spotifyId,
+        // bubbleId will be added after the backend call succeeds
         highlight: true
       };
       
-      // Update the dynamicPages state (this will update your UI)
-      setDynamicPages([...dynamicPages, newPage]);
-      setNewPageName('');
-      
-      // Optionally update the body height to accommodate new components
-      const pageHeight = Math.max(...dynamicPages.map(page => page.y + page.size), y + size);
-      document.body.style.minHeight = `${pageHeight + 200}px`;
-      
-      // Scroll to the new component
-      setTimeout(() => {
-        window.scrollTo({
-          top: y - 100,
-          behavior: 'smooth'
-        });
-        setTimeout(() => {
-          setDynamicPages(prev =>
-            prev.map(page => page.id === newPageId ? { ...page, highlight: false } : page)
-          );
-        }, 2000);
-      }, 100);
-      
-      // Send a POST request to the backend to create the bubble
+      // Send a POST request to create the bubble in the backend.
       axios.post('http://localhost:3001/bubbles', { genreName: newPageName })
         .then(response => {
-          console.log('Bubble created in backend:', response.data);
+          const newBubbleId = response.data._id;
+          console.log("New bubble ID:", newBubbleId);
+          // Add the bubbleId to the newPage object
+          const newPageWithId = { ...newPage, bubbleId: newBubbleId };
+          // Update state to include the new page with bubbleId
+          setDynamicPages([...dynamicPages, newPageWithId]);
+          setNewPageName('');
+          
+          const pageHeight = Math.max(...dynamicPages.map(page => page.y + page.size), y + size);
+          document.body.style.minHeight = `${pageHeight + 200}px`;
+          setTimeout(() => {
+            window.scrollTo({
+              top: y - 100,
+              behavior: 'smooth'
+            });
+            setTimeout(() => {
+              setDynamicPages(prev => prev.map(page => 
+                page.id === newPageId ? { ...page, highlight: false } : page
+              ));
+            }, 2000);
+          }, 100);
         })
         .catch(error => {
           console.error('Error creating bubble in backend:', error);
         });
     }
   };
+  
 
   return (
     <Router>

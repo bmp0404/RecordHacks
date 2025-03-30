@@ -1,10 +1,30 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-const Jam = ({ destination, label, color, size, x, y, highlight }) => {
+const Jam = ({ destination, label, color, size, x, y, highlight, bubbleId, currentUserId }) => {
+  const navigate = useNavigate();
+
+  const handleClick = async (e) => {
+    e.preventDefault();
+    console.log("Jam clicked, bubbleId:", bubbleId); // Debug: check if bubbleId is defined
+    if (!bubbleId) {
+      console.error("No bubbleId provided!");
+      return;
+    }
+    try {
+      // PUT request to join the bubble
+      const response = await axios.put(`http://localhost:3001/bubbles/${bubbleId}/join`, { userId: currentUserId });
+      console.log('Joined bubble:', response.data);
+      // Navigate to the destination route for this bubble
+      navigate(destination);
+    } catch (error) {
+      console.error('Error joining bubble:', error.response?.data || error.message);
+    }
+  };
+
   return (
-    <Link 
-      to={destination}
+    <div
       className={`jam-component ${highlight ? 'jam-highlight' : ''}`}
       style={{
         position: 'absolute',
@@ -24,9 +44,11 @@ const Jam = ({ destination, label, color, size, x, y, highlight }) => {
         textAlign: 'center',
         boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
         transition: 'transform 0.3s, box-shadow 0.3s, filter 0.5s',
-        zIndex: highlight ? 10 : 1, // Higher z-index when highlighted
+        zIndex: highlight ? 10 : 1,
         animation: highlight ? 'pulseHighlight 2s' : 'none',
+        cursor: 'pointer'
       }}
+      onClick={handleClick}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'scale(1.05)';
         e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.4)';
@@ -37,7 +59,7 @@ const Jam = ({ destination, label, color, size, x, y, highlight }) => {
       }}
     >
       {label}
-    </Link>
+    </div>
   );
 };
 
