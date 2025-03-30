@@ -199,7 +199,7 @@ const LoginPage = () => {
       // setAuthData({ access_token, refresh_token, expiresAt, spotifyId, displayName });
       
       // Optionally navigate to the dashboard
-      navigate('/');
+      navigate('/dashboard');
     });
   };
   
@@ -416,62 +416,40 @@ function App() {
     e.preventDefault();
     if (newPageName.trim()) {
       const path = `/${newPageName.toLowerCase().replace(/\s+/g, '-')}`;
-      
-      // Always use default Spotify ID
+      // Use a default Spotify ID or one that you have for your user
       const spotifyId = '2WmJ5wp5wKBlIJE6FDAIBJ';
-      
-      // Generate a random size between MIN_SIZE and MAX_SIZE
+  
+      // Generate random size between MIN_SIZE and MAX_SIZE
       const size = Math.floor(Math.random() * (MAX_SIZE - MIN_SIZE + 1)) + MIN_SIZE;
       
-      // Fixed positioning bounds for X-axis (these seem to work well)
-      const minX = 0;  // Left margin
-      const maxX = 1000;   // Right boundary
-      
-      // Generate initial X position
+      // Determine fixed positioning bounds for X and Y
+      const minX = 0;
+      const maxX = 1000;
       let x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
       
-      // Improved Y position generation:
-      // First, determine the valid vertical range
-      const minY = 120; // Minimum Y to avoid header content
-      
-      // Find the maximum Y position of any existing component
-      let maxExistingY = minY;
-      if (dynamicPages.length > 0) {
-        maxExistingY = Math.max(...dynamicPages.map(page => page.y + page.size));
-      }
-      
-      // Set our max Y value with some padding for new components
+      const minY = 120;
+      let maxExistingY = dynamicPages.length > 0 
+        ? Math.max(...dynamicPages.map(page => page.y + page.size))
+        : minY;
       const maxY = maxExistingY + 200;
-      
-      // Generate initial Y position anywhere within the valid range
       let y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
       
-      // Make sure components maintain MIN_DISTANCE from each existing component
+      // Ensure new component maintains minimum distance from existing components
       let validPosition = false;
       let attempts = 0;
       const maxAttempts = 30;
       
       while (!validPosition && attempts < maxAttempts) {
         validPosition = true;
-        
-        // Check distance from each existing component
         for (const page of dynamicPages) {
-          const distance = Math.sqrt(
-            Math.pow(x - page.x, 2) + 
-            Math.pow(y - page.y, 2)
-          );
-          
+          const distance = Math.sqrt(Math.pow(x - page.x, 2) + Math.pow(y - page.y, 2));
           if (distance < MIN_DISTANCE) {
             validPosition = false;
-            
-            // Try completely new random positions
             x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
             y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
-            
             break;
           }
         }
-        
         attempts++;
       }
       
@@ -485,34 +463,39 @@ function App() {
         size: size,
         x: x,
         y: y,
-        spotifyId: spotifyId, // Using default ID
-        highlight: true // Add a highlight flag
+        spotifyId: spotifyId, // Using default ID for now
+        highlight: true
       };
       
+      // Update the dynamicPages state (this will update your UI)
       setDynamicPages([...dynamicPages, newPage]);
       setNewPageName('');
       
-      // Update the page's min height to accommodate components
-      const pageHeight = Math.max(
-        ...dynamicPages.map(page => page.y + page.size), 
-        y + size
-      );
+      // Optionally update the body height to accommodate new components
+      const pageHeight = Math.max(...dynamicPages.map(page => page.y + page.size), y + size);
       document.body.style.minHeight = `${pageHeight + 200}px`;
       
-      // Scroll to the new component with a small offset
+      // Scroll to the new component
       setTimeout(() => {
         window.scrollTo({
-          top: y - 100, // Scroll to slightly above the component
+          top: y - 100,
           behavior: 'smooth'
         });
-        
-        // Remove highlight after animation completes
         setTimeout(() => {
-          setDynamicPages(prev => prev.map(page => 
-            page.id === newPageId ? {...page, highlight: false} : page
-          ));
-        }, 2000); // Remove highlight after 2 seconds
-      }, 100); // Small delay before scrolling
+          setDynamicPages(prev =>
+            prev.map(page => page.id === newPageId ? { ...page, highlight: false } : page)
+          );
+        }, 2000);
+      }, 100);
+      
+      // Send a POST request to the backend to create the bubble
+      axios.post('http://localhost:3001/bubbles', { genreName: newPageName })
+        .then(response => {
+          console.log('Bubble created in backend:', response.data);
+        })
+        .catch(error => {
+          console.error('Error creating bubble in backend:', error);
+        });
     }
   };
 

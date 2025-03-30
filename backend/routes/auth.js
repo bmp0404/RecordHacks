@@ -70,6 +70,7 @@ router.get('/callback', async (req, res) => {
         setDefaultsOnInsert: true
       }
     );
+
     
     // 5. Render an HTML page that sends the auth data back to the main window and then closes the popup
     res.send(`
@@ -95,6 +96,10 @@ router.get('/callback', async (req, res) => {
         </body>
       </html>
     `);
+
+    // 6. playing song
+    
+
     
   } catch (error) {
     console.error('Authentication error:', error);
