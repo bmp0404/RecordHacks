@@ -1,7 +1,6 @@
-// Create this as components/ChatBox.js
 import React, { useState, useEffect, useRef } from 'react';
 
-const ChatBox = ({ jamId }) => {
+const ChatBox = ({ jamId, height = '400px' }) => {  // Added height prop with default value
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef(null);
@@ -22,11 +21,6 @@ const ChatBox = ({ jamId }) => {
         { id: 3, user: 'Jamie', text: 'Who\'s the producer?', timestamp: new Date(Date.now() - 300000).toISOString() }
       ];
       
-      // In a real app, you would fetch from API:
-      // const response = await fetch(`/api/jams/${jamId}/messages`);
-      // const data = await response.json();
-      // setMessages(data);
-      
       setMessages(dummyMessages);
     };
     
@@ -44,8 +38,8 @@ const ChatBox = ({ jamId }) => {
     
     // Create a new message object
     const messageObj = {
-      id: Date.now(), // temporary ID, would be assigned by backend
-      user: 'You', // In a real app, get from auth context
+      id: Date.now(),
+      user: 'You',
       text: newMessage,
       timestamp: new Date().toISOString()
     };
@@ -53,24 +47,6 @@ const ChatBox = ({ jamId }) => {
     // Optimistic update - add message to UI immediately
     setMessages([...messages, messageObj]);
     setNewMessage('');
-    
-    // In a real app, send to backend:
-    // try {
-    //   const response = await fetch(`/api/jams/${jamId}/messages`, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //       text: newMessage
-    //     }),
-    //   });
-    //   const data = await response.json();
-    //   // Could update the message with server-generated ID if needed
-    // } catch (error) {
-    //   console.error('Error sending message:', error);
-    //   // Handle error - potentially remove the message if it failed to send
-    // }
   };
 
   const formatTime = (timestamp) => {
@@ -82,7 +58,7 @@ const ChatBox = ({ jamId }) => {
     <div className="chat-box" style={{ 
       width: '100%',
       maxWidth: '600px',
-      height: '400px',
+      height: height, // Use the height prop instead of hardcoded value
       display: 'flex',
       flexDirection: 'column',
       borderRadius: '12px',

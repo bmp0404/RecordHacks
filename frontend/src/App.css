@@ -145,6 +145,20 @@ body, html {
   box-shadow: 0 7px 10px rgba(0,0,0,0.2);
 }
 
+/* Add proper CSS for highlight animation */
+@keyframes pulseHighlight {
+  0% { filter: brightness(1); }
+  25% { filter: brightness(1.5); }
+  50% { filter: brightness(1); }
+  75% { filter: brightness(1.5); }
+  100% { filter: brightness(1); }
+}
+
+.jam-highlight {
+  box-shadow: 0 0 30px rgba(255,255,255,0.8), 0 8px 16px rgba(0,0,0,0.3) !important;
+  animation: pulseHighlight 2s;
+}
+
 /* Dynamic page styling (Fixed to viewport height) */
 .dynamic-page {
   padding: 2rem;

@@ -39,7 +39,7 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
             boxShadow: '0 4px 6px rgba(0,0,0,0.15)'
           }}
         >
-          Login with Spotify 
+          Login
         </button>
       </div>
 
@@ -56,6 +56,7 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
           size={page.size || 100} 
           x={page.x}
           y={page.y}
+          highlight={page.highlight} // Pass the highlight flag
         />
       ))}
       
@@ -81,12 +82,12 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
   );
 };
 
-// Update DynamicPage to include Spotify embedding and ChatBox side by side
+// Update in App.js
 const DynamicPage = ({ title, spotifyId }) => {
   const navigate = useNavigate();
   
   return (
-    <div className="dynamic-page">
+    <div className="dynamic-page" style={{ paddingTop: '120px' }}> {/* Increased padding for more space */}
       <h1>{title}</h1>
       
       {/* Container for side-by-side layout */}
@@ -102,7 +103,7 @@ const DynamicPage = ({ title, spotifyId }) => {
       }}>
         {/* Spotify Embed - Left side */}
         <div className="spotify-container" style={{ 
-          width: '55%', 
+          width: '30%', 
           borderRadius: '12px',
           overflow: 'hidden',
           boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
@@ -119,9 +120,12 @@ const DynamicPage = ({ title, spotifyId }) => {
           ></iframe>
         </div>
         
-        {/* ChatBox - Right side */}
-        <div style={{ width: '45%' }}>
-          <ChatBox jamId={title.toLowerCase().replace(/\s+/g, '-')} />
+        {/* ChatBox - Right side with adjustable height */}
+        <div style={{ width: '30%' }}>
+          <ChatBox 
+            jamId={title.toLowerCase().replace(/\s+/g, '-')} 
+            height="365px" /* Match Spotify embed height */
+          />
         </div>
       </div>
       
@@ -344,10 +348,10 @@ function App() {
 
   // Constants for Jam component sizing and positioning
   const MIN_SIZE = 80;
-  const MAX_SIZE = 150;
+  const MAX_SIZE = 200;
   const MIN_DISTANCE = 100; // Minimum distance between components
 
-  // Function to create a new page - removed spotify input processing
+  // Function to create a new page - with scroll and highlight functionality
   const createNewPage = (e) => {
     e.preventDefault();
     if (newPageName.trim()) {
@@ -411,15 +415,18 @@ function App() {
         attempts++;
       }
       
+      const newPageId = Date.now();
+      
       const newPage = {
-        id: Date.now(),
+        id: newPageId,
         title: newPageName,
         path: path,
         color: getRandomColor(),
         size: size,
         x: x,
         y: y,
-        spotifyId: spotifyId // Using default ID
+        spotifyId: spotifyId, // Using default ID
+        highlight: true // Add a highlight flag
       };
       
       setDynamicPages([...dynamicPages, newPage]);
@@ -431,6 +438,21 @@ function App() {
         y + size
       );
       document.body.style.minHeight = `${pageHeight + 200}px`;
+      
+      // Scroll to the new component with a small offset
+      setTimeout(() => {
+        window.scrollTo({
+          top: y - 100, // Scroll to slightly above the component
+          behavior: 'smooth'
+        });
+        
+        // Remove highlight after animation completes
+        setTimeout(() => {
+          setDynamicPages(prev => prev.map(page => 
+            page.id === newPageId ? {...page, highlight: false} : page
+          ));
+        }, 2000); // Remove highlight after 2 seconds
+      }, 100); // Small delay before scrolling
     }
   };
 
@@ -489,6 +511,18 @@ style.textContent = `
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+
+  @keyframes pulseHighlight {
+    0% { filter: brightness(1); }
+    25% { filter: brightness(1.5); }
+    50% { filter: brightness(1); }
+    75% { filter: brightness(1.5); }
+    100% { filter: brightness(1); }
+  }
+  
+  .jam-highlight {
+    box-shadow: 0 0 30px rgba(255,255,255,0.8), 0 8px 16px rgba(0,0,0,0.3) !important;
   }
 `;
 document.head.appendChild(style);

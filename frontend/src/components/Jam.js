@@ -1,39 +1,43 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-// Renamed from Bubble to Jam
-const Jam = ({ destination, label, color, size = 100, x, y }) => {
-  const navigate = useNavigate();
-  
+const Jam = ({ destination, label, color, size, x, y, highlight }) => {
   return (
-    <button 
-      onClick={() => navigate(destination)}
+    <Link 
+      to={destination}
+      className={`jam-component ${highlight ? 'jam-highlight' : ''}`}
       style={{
+        position: 'absolute',
+        left: `${x}px`,
+        top: `${y}px`,
         width: `${size}px`,
         height: `${size}px`,
-        fontSize: `${size * 0.18}px`,
-        backgroundColor: color || '#4CAF50',
-        color: 'white',
-        border: 'none',
+        backgroundColor: color,
         borderRadius: '50%',
-        cursor: 'pointer',
-        margin: '10px',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-        transition: 'all 0.3s ease',
         display: 'flex',
-        justifyContent: 'center',
         alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        textDecoration: 'none',
+        fontWeight: 'bold',
+        fontSize: `${Math.min(size / 8, 20)}px`,
         textAlign: 'center',
-        padding: '0',
-        position: x !== undefined && y !== undefined ? 'absolute' : 'static',
-        left: x !== undefined ? `${x}px` : 'auto',
-        top: y !== undefined ? `${y}px` : 'auto'
+        boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
+        transition: 'transform 0.3s, box-shadow 0.3s, filter 0.5s',
+        zIndex: highlight ? 10 : 1, // Higher z-index when highlighted
+        animation: highlight ? 'pulseHighlight 2s' : 'none',
       }}
-      onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
-      onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'scale(1.05)';
+        e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.4)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'scale(1)';
+        e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3)';
+      }}
     >
       {label}
-    </button>
+    </Link>
   );
 };
 
