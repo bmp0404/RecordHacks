@@ -70,9 +70,7 @@ router.get('/callback', async (req, res) => {
         setDefaultsOnInsert: true
       }
     );
-    res.json(user)
-    // 5. Redirect to dashboard with user ID and name as query parameters
-    res.redirect(`/bubbles`);
+    return ;
   } catch (error) {
     console.error('Authentication error:', error);
     res.status(500).send('Authentication failed');
