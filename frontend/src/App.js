@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from
 import './App.css';
 import Jam from './components/Jam';
 
-// In the HomePage component
+// In the HomePage component - removed spotifyInput and setSpotifyInput
 const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => {
   const navigate = useNavigate();
   
@@ -58,7 +58,7 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
         />
       ))}
       
-      {/* Add form for creating new jams */}
+      {/* Simplified form without Spotify input */}
       <div className="create-jam-form" style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 100 }}>
         <form onSubmit={createNewPage}>
           <input
@@ -66,6 +66,7 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
             value={newPageName}
             onChange={(e) => setNewPageName(e.target.value)}
             placeholder="Enter jam name"
+            style={{ marginBottom: '10px' }}
           />
           <button 
             className="create-jam-button"
@@ -79,14 +80,27 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
   );
 };
 
-// Convert DynamicPage to a function that can use hooks
-const DynamicPage = ({ title }) => {
+// Update DynamicPage to include Spotify embedding with default ID
+const DynamicPage = ({ title, spotifyId }) => {
   const navigate = useNavigate();
   
   return (
-    // Remove the "page" class to prevent inheriting homepage styles
     <div className="dynamic-page">
       <h1>{title}</h1>
+      
+      {/* Spotify Embed */}
+      <div className="spotify-container" style={{ width: '100%', maxWidth: '800px', margin: '20px auto' }}>
+        <iframe 
+          style={{ borderRadius: '12px' }} 
+          src={`https://open.spotify.com/embed/album/${spotifyId || '2WmJ5wp5wKBlIJE6FDAIBJ'}?utm_source=generator`}
+          width="100%" 
+          height="352" 
+          frameBorder="0" 
+          allowFullScreen=""
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+          loading="lazy"
+        ></iframe>
+      </div>
       
       <button
         className="back-button"
@@ -152,7 +166,7 @@ const LoginPage = () => {
   );
 };
 
-// App content component that can use routing hooks
+// App content component that can use routing hooks - removed spotifyInput and setSpotifyInput
 const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => {
   const location = useLocation();
   
@@ -207,7 +221,7 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
               <HomePage 
                 dynamicPages={dynamicPages} 
                 newPageName={newPageName} 
-                setNewPageName={setNewPageName} 
+                setNewPageName={setNewPageName}
                 createNewPage={createNewPage}
               />
             } 
@@ -219,7 +233,7 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
             <Route
               key={page.id}
               path={page.path}
-              element={<DynamicPage title={page.title} />}
+              element={<DynamicPage title={page.title} spotifyId={page.spotifyId} />}
             />
           ))}
         </Routes>
@@ -233,7 +247,7 @@ function App() {
   const [dynamicPages, setDynamicPages] = useState([]);
   // State for the form input
   const [newPageName, setNewPageName] = useState('');
-
+  
   // Random color generator
   const getRandomColor = () => {
     const colors = ['#4CAF50', '#2196F3', '#f44336', '#FF9800', '#9C27B0', '#795548', '#607D8B'];
@@ -245,11 +259,14 @@ function App() {
   const MAX_SIZE = 150;
   const MIN_DISTANCE = 100; // Minimum distance between components
 
-  // Function to create a new page
+  // Function to create a new page - removed spotify input processing
   const createNewPage = (e) => {
     e.preventDefault();
     if (newPageName.trim()) {
       const path = `/${newPageName.toLowerCase().replace(/\s+/g, '-')}`;
+      
+      // Always use default Spotify ID
+      const spotifyId = '2WmJ5wp5wKBlIJE6FDAIBJ';
       
       // Generate a random size between MIN_SIZE and MAX_SIZE
       const size = Math.floor(Math.random() * (MAX_SIZE - MIN_SIZE + 1)) + MIN_SIZE;
@@ -313,7 +330,8 @@ function App() {
         color: getRandomColor(),
         size: size,
         x: x,
-        y: y
+        y: y,
+        spotifyId: spotifyId // Using default ID
       };
       
       setDynamicPages([...dynamicPages, newPage]);
@@ -359,6 +377,30 @@ style.textContent = `
   .App, .App-header {
     min-height: 100vh;
     height: auto;
+  }
+
+  .create-jam-form input {
+    background: rgba(255,255,255,0.3);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    padding: 12px 15px;
+    font-size: 1rem;
+    width: 250px;
+    transition: all 0.3s;
+  }
+  
+  .create-jam-form input::placeholder {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  
+  .spotify-container {
+    margin: 30px auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   }
 `;
 document.head.appendChild(style);
