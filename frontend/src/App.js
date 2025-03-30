@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 import Jam from './components/Jam';
@@ -44,8 +44,8 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
         </button>
       </div>
 
-      <h1>Bubblr</h1>
-      <h2>Explore Music Together</h2>
+      <h1>Jamboree</h1>
+      <h2>Music is Better Together</h2>
       
       {/* Add this section to render Jam components */}
       {dynamicPages.map(page => (
@@ -94,15 +94,32 @@ const DynamicPage = ({ title, spotifyId, bubbleId, currentUserId }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
-  const handleLeaveBubble = async () => {
-    try {
-      await axios.put(`http://localhost:3001/bubbles/${bubbleId}/leave`, { userId: currentUserId });
-      console.log('Left bubble');
-      navigate('/');
-    } catch (error) {
-      console.error('Error leaving bubble:', error.response?.data || error.message);
-    }
+  // Update the handleLeaveBubble function in the DynamicPage component
+const handleLeaveBubble = async () => {
+  // Always navigate home, regardless of whether the API call succeeds
+  const navigateHome = () => {
+    console.log('Navigating back to home');
+    navigate('/');
   };
+  
+  // If either bubbleId or currentUserId is missing, just go home without API call
+  if (!bubbleId || !currentUserId) {
+    console.log("Either bubbleId or currentUserId is missing, navigating without leaving bubble");
+    navigateHome();
+    return;
+  }
+  
+  try {
+    // Attempt to leave the bubble in the backend
+    await axios.put(`http://localhost:3001/bubbles/${bubbleId}/leave`, { userId: currentUserId });
+    console.log('Left bubble');
+    navigateHome();
+  } catch (error) {
+    console.error('Error leaving bubble:', error.response?.data || error.message);
+    // Still navigate home even if the API call fails
+    navigateHome();
+  }
+};
 
   // Search for a track by name and get the top result's ID
   const handleTrackSearch = async (e) => {
@@ -137,14 +154,32 @@ const DynamicPage = ({ title, spotifyId, bubbleId, currentUserId }) => {
 
   return (
     <div className="dynamic-page" style={{ paddingTop: '120px' }}>
-      <h1>{title}</h1>
+      <h1 style={{ 
+        color: 'white',
+        textAlign: 'center',
+        marginTop: '0',
+        marginBottom: '30px',
+        fontSize: '3rem',
+        fontWeight: '700',
+        textShadow: '0 2px 8px rgba(0,0,0,0.7)',
+        position: 'relative',
+        zIndex: '10',
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        padding: '10px 20px',
+        borderRadius: '10px',
+        width: 'fit-content',
+        margin: '0 auto 30px',
+        letterSpacing: '1px'
+      }}>
+        {title || 'Untitled Jam'}
+      </h1>
       
       {/* Main content container - using row layout */}
       <div className="content-container" style={{
         display: 'flex',
-        flexDirection: 'row',         // Changed to row to place elements side by side
-        justifyContent: 'center',     // Center horizontally
-        alignItems: 'flex-start',     // Align items to the top
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
         width: '90%',
         maxWidth: '1200px',
         margin: '20px auto',
@@ -250,7 +285,7 @@ const DynamicPage = ({ title, spotifyId, bubbleId, currentUserId }) => {
           top: '20px',
           left: '20px',
           padding: '8px 16px',
-          background: 'rgba(255,255,255,0.2)',
+          background: 'linear-gradient(45deg, #031d32, #0D47A1)', // Updated to match login page gradient
           color: 'white',
           border: 'none',
           borderRadius: '4px',
@@ -394,7 +429,6 @@ const LoginPage = () => {
   );
 };
 
-// App content component that can use routing hooks - removed spotifyInput and setSpotifyInput
 const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => {
   const location = useLocation();
   
@@ -408,7 +442,8 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
     if (location.pathname !== '/' && !location.pathname.includes('login')) {
       document.body.style.height = '100vh';
       document.body.style.minHeight = '100vh';
-      document.body.style.overflow = 'hidden';
+      // Remove this line to allow scrolling on dynamic pages
+      // document.body.style.overflow = 'hidden';
     } else {
       // Restore expandable size for homepage
       const maxHeight = dynamicPages.length > 0 
@@ -426,20 +461,19 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
       margin: 0,
       padding: 0,
       overflowX: 'hidden',
-      // Constrain height on dynamic pages
-      ...(location.pathname !== '/' && !location.pathname.includes('login') ? { height: '100vh', overflow: 'hidden' } : {})
+      // Remove overflow: hidden for dynamic pages
+      // ...(location.pathname !== '/' && !location.pathname.includes('login') ? { height: '100vh', overflow: 'hidden' } : {})
     }}>
       <header className="App-header" style={{ 
         minHeight: '100vh',
         margin: 0,
         padding: 0,
         width: '100%', 
-        // Change this line to use the same blue gradient
         background: 'linear-gradient(135deg, #2196F3 0%, #0D47A1 100%)',
-        // Rest of the styles stay the same
         paddingBottom: location.pathname === '/' ? 
           `${Math.max(100, dynamicPages.length * 120)}px` : '0',
-        ...(location.pathname !== '/' && !location.pathname.includes('login') ? { height: '100vh', maxHeight: '100vh' } : {})
+        // Remove fixed height and maxHeight for dynamic pages
+        // ...(location.pathname !== '/' && !location.pathname.includes('login') ? { height: '100vh', maxHeight: '100vh' } : {})
       }}>
         <Routes>
           {/* Main routes */}
@@ -479,9 +513,105 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
 
 function App() {
   // State to store dynamically created pages
-  const [dynamicPages, setDynamicPages] = useState([]);
+  const [dynamicPages, setDynamicPages] = useState([
+    {
+      id: 1,
+      title: "Hip Hop",
+      path: "/hip-hop",
+      color: "#FF9F1C", // Orange
+      size: 150,
+      x: 150,
+      y: 180,
+      spotifyId: "0wwPcA6wtMf6HUMpIRdeP7?si=96a27483dc524e92", // Drake - Hotline Bling
+      bubbleId: "hiphop-default",
+      highlight: false
+    },
+    {
+      id: 2,
+      title: "Rock Classics",
+      path: "/rock-classics",
+      color: "#FF3864", // Pink
+      size: 180,
+      x: 500,
+      y: 300,
+      spotifyId: "5Lsg8jlCoTyxRch9LvJo3E?si=7173c9fa253d46bf", // Queen - Another One Bites The Dust
+      bubbleId: "rock-default",
+      highlight: false
+    },
+    {
+      id: 3,
+      title: "Chill Vibes",
+      path: "/chill-vibes",
+      color: "#41EAD4", // Turquoise
+      size: 120,
+      x: 900,
+      y: 150,
+      spotifyId: "3vQ4T78TTMOjQXGfXVKQJo?si=5c64db33c4724353", // Childish Gambino - Redbone
+      bubbleId: "chill-default",
+      highlight: false
+    },
+    {
+      id: 4,
+      title: "EDM Party",
+      path: "/edm-party",
+      color: "#7B4CFF", // Purple
+      size: 160,
+      x: 270,
+      y: 350,
+      spotifyId: "6Xe9wT5xeZETPwtaP2ynUz?si=b9b25fa5a4554e2a", // Avicii - Levels
+      bubbleId: "edm-default",
+      highlight: false
+    },
+    {
+      id: 5,
+      title: "90s Throwbacks",
+      path: "/90s-throwbacks",
+      color: "#00DDFF", // Cyan
+      size: 140,
+      x: 700,
+      y: 440,
+      spotifyId: "62bOmKYxYg7dhrC6gH9vFn?si=255cff666b264600", // NSYNC - Bye Bye Bye
+      bubbleId: "90s-default",
+      highlight: false
+    }
+  ]);
+  
   // State for the form input
   const [newPageName, setNewPageName] = useState('');
+
+  // Create bubbles for predefined jams on app initialization
+  useEffect(() => {
+    const createDefaultBubbles = async () => {
+      try {
+        // Get all existing bubbles
+        const existingBubbles = await axios.get('http://localhost:3001/bubbles');
+        const existingBubbleIds = existingBubbles.data.map(bubble => bubble._id);
+        
+        // Filter the predefined jams to only create those that don't exist yet
+        const jamsToCreate = dynamicPages.filter(jam => !existingBubbleIds.includes(jam.bubbleId));
+        
+        // Create bubbles in the backend for any missing predefined jams
+        for (const jam of jamsToCreate) {
+          try {
+            await axios.post('http://localhost:3001/bubbles', {
+              genreName: jam.title,
+              _id: jam.bubbleId, // Specify the ID to match our predefined IDs
+              currentTrackId: jam.spotifyId
+            });
+            console.log(`Created default bubble for ${jam.title}`);
+          } catch (error) {
+            console.error(`Failed to create bubble for ${jam.title}:`, error);
+          }
+        }
+      } catch (error) {
+        console.error('Error setting up default jams:', error);
+      }
+    };
+    
+    createDefaultBubbles();
+  }, []); // Empty dependency array means this runs once on component mount
+  
+
   
   // Random color generator
   const getRandomColor = () => {

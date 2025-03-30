@@ -8,18 +8,30 @@ const Jam = ({ destination, label, color, size, x, y, highlight, bubbleId, curre
   const handleClick = async (e) => {
     e.preventDefault();
     console.log("Jam clicked, bubbleId:", bubbleId); // Debug: check if bubbleId is defined
-    if (!bubbleId) {
-      console.error("No bubbleId provided!");
+    
+    // Always navigate, regardless of userId
+    const navigateToDestination = () => {
+      console.log('Navigating to:', destination);
+      navigate(destination);
+    };
+
+    // If we don't have both bubbleId and currentUserId, just navigate without joining
+    if (!bubbleId || !currentUserId) {
+      console.log("Either bubbleId or currentUserId is missing, navigating without joining bubble");
+      navigateToDestination();
       return;
     }
+    
     try {
       // PUT request to join the bubble
       const response = await axios.put(`http://localhost:3001/bubbles/${bubbleId}/join`, { userId: currentUserId });
       console.log('Joined bubble:', response.data);
       // Navigate to the destination route for this bubble
-      navigate(destination);
+      navigateToDestination();
     } catch (error) {
       console.error('Error joining bubble:', error.response?.data || error.message);
+      // Still navigate even if joining the bubble fails
+      navigateToDestination();
     }
   };
 

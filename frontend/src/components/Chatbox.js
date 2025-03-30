@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const ChatBox = ({ jamId, height = '400px' }) => {  // Added height prop with default value
+const ChatBox = ({ jamId, height = '400px' }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef(null);
+  // Add state for notification
+  const [notification, setNotification] = useState({ visible: false, message: '', user: '' });
 
   // Scroll to bottom of messages when they change
   useEffect(() => {
@@ -55,6 +57,26 @@ const ChatBox = ({ jamId, height = '400px' }) => {  // Added height prop with de
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const handleAddFriend = (username) => {
+    console.log(`Adding ${username} as friend`);
+    
+    // Show notification instead of alert
+    setNotification({
+      visible: true,
+      message: `Friend request sent to ${username}!`,
+      user: username
+    });
+    
+    // Auto-hide notification after 3 seconds
+    setTimeout(() => {
+      setNotification({
+        visible: false,
+        message: '',
+        user: ''
+      });
+    }, 3000);
+  };
+
   return (
     <div className="chat-box" style={{ 
       width: '100%',
@@ -67,8 +89,35 @@ const ChatBox = ({ jamId, height = '400px' }) => {  // Added height prop with de
       boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
       margin: '20px auto',
       background: 'rgba(0,0,0,0.2)',
-      backdropFilter: 'blur(10px)'
+      backdropFilter: 'blur(10px)',
+      position: 'relative' // For absolute positioning of notification
     }}>
+      {/* Custom notification element */}
+      {notification.visible && (
+        <div 
+          className="friend-notification"
+          style={{
+            position: 'absolute',
+            top: '10px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(29, 185, 84, 0.9)', // Spotify green
+            color: 'white',
+            padding: '10px 20px',
+            borderRadius: '20px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            zIndex: 100,
+            animation: 'fadeIn 0.3s ease-out',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <span style={{ fontSize: '16px', fontWeight: 'bold' }}>✓</span>
+          {notification.message}
+        </div>
+      )}
+      
       {/* Messages container */}
       <div className="messages-container" style={{ 
         flex: 1, 
@@ -99,16 +148,72 @@ const ChatBox = ({ jamId, height = '400px' }) => {  // Added height prop with de
                 background: msg.user === 'You' ? 
                   'linear-gradient(45deg, #3D9AF1, #7B4CFF)' : 
                   'rgba(255,255,255,0.15)',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                position: 'relative'
               }}
             >
               {msg.user !== 'You' && (
-                <div className="message-user" style={{ 
-                  fontWeight: 'bold', 
-                  marginBottom: '4px',
-                  fontSize: '0.9rem' 
+                <div className="message-user-container" style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: '4px'
                 }}>
-                  {msg.user}
+                  <div className="message-user" style={{ 
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem'
+                  }}>
+                    {msg.user}
+                  </div>
+                  
+                  {/* Add friend button - now always visible */}
+                  <div 
+                    className="add-friend-button"
+                    onClick={() => handleAddFriend(msg.user)}
+                    style={{
+                      marginLeft: '8px',
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      background: 'rgba(255,255,255,0.3)', // Made slightly more visible
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      transition: 'transform 0.2s ease, background-color 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.1)';
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.5)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
+                    }}
+                  >
+                    +
+                    <div style={{
+                      position: 'absolute',
+                      top: '-30px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: 'rgba(0,0,0,0.7)',
+                      color: 'white',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      whiteSpace: 'nowrap',
+                      opacity: '0',
+                      transition: 'opacity 0.2s ease',
+                      pointerEvents: 'none' // Prevents the tooltip from interfering with hover
+                    }}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '0'}
+                    >
+                      Add Friend
+                    </div>
+                  </div>
                 </div>
               )}
               <div className="message-text">{msg.text}</div>
