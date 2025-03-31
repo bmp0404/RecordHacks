@@ -8,7 +8,7 @@ const Bubble = require('../models/Bubble');
 router.post('/', async (req, res) => {
   try {
     const { genreName } = req.body;
-    const newBubble = await Bubble.create({ genreName, activeUsers: [] });
+    const newBubble = await Bubble.create({ genreName, activeUsers: [], currentTrack: 'spotify:track:3n3Ppam7vgaVa1iaRUc9Lp',  });
     return res.status(201).json(newBubble);
   } catch (error) {
     console.error(error);
