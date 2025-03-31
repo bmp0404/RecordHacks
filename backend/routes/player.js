@@ -51,61 +51,82 @@ async function getClientCredentialsToken() {
 }
 
 
-// Play a song using Spotify API
+/**
+ * GET /play
+ * Plays a given track on the user's active Spotify device.
+ *
+ * Query params:
+ *   - accessToken (string): The user's current valid Spotify access token
+ *   - trackId     (string): The Spotify track ID you want to play
+ */
 router.get('/play', async (req, res) => {
     try {
-        const { userId } = req.query;
-        if (!userId) return res.status(400).json({ error: 'User ID is required' });
-
-        // Find user in the database
-        let user = await User.findOne({ spotifyId: userId });
-        if (!user) return res.status(404).json({ error: 'User not found' });
-
-        // Refresh token if expired
-        let accessToken = user.accessToken;
-        if (new Date() > user.expiresAt) {
-            accessToken = await refreshAccessToken(user);
+      const { accessToken, trackId } = req.query;
+      
+      if (!accessToken) {
+        return res.status(400).json({ error: 'Access token is required.' });
+      }
+      if (!trackId) {
+        return res.status(400).json({ error: 'Track ID is required.' });
+      }
+  
+      // Construct Spotify track URI
+      // const trackUri = `spotify:track:${trackId}`;
+  
+      // Make a PUT request to Spotify to start playback
+      await axios.put(
+        'https://api.spotify.com/v1/me/player/play',
+        { uris: [trackId] },  // Just pass trackId
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
         }
-
-        // Play the hardcoded song
-        await axios.put(
-            'https://api.spotify.com/v1/me/player/play',
-            { uris: [TRACK_URI] },
-            { headers: { Authorization: `Bearer ${accessToken}` } }
-        );
-
+      );
+  
+      return res.json({ message: 'Playback started successfully!' });
     } catch (error) {
-        console.error('Error playing song:', error.response?.data || error.message);
-        res.status(500).json({ error: 'Failed to play the song' });
+      console.error('Error playing track:', error.response?.data || error.message);
+      return res.status(500).json({ error: 'Failed to play the track' });
     }
-});
+  });
 
-// Search for tracks by name and return the results
 router.get('/search', async (req, res) => {
-    const { q } = req.query;
-    
-    if (!q) {
-        return res.status(400).json({ error: 'Search query is required' });
-    }
-    
-    try {
-        // Get access token using client credentials (no user required)
-        const accessToken = await getClientCredentialsToken();
-        
-        // Search for tracks using Spotify API
-        const searchResponse = await axios.get(
-            `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=5`,
-            { headers: { 'Authorization': `Bearer ${accessToken}` } }
-        );
-        
-        res.json(searchResponse.data);
-    } catch (error) {
-        console.error('Error searching Spotify:', error.response?.data || error.message);
-        res.status(500).json({ 
-            error: 'Failed to search Spotify',
-            details: error.response?.data || error.message
-        });
-    }
+  const { q, accessToken } = req.query;
+
+  if (!q || !accessToken) {
+    return res.status(400).json({ error: 'Search query and access token are required' });
+  }
+
+  try {
+    const searchResponse = await axios.get(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=5`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    const tracks = searchResponse.data?.tracks?.items || [];
+
+    const simplified = tracks.map((track) => ({
+      name: track.name,
+      artist: track.artists?.[0]?.name || 'Unknown Artist',
+      uri: track.uri, // This is the full Spotify URI you'll use for playback
+      id: track.id,
+      albumArt: track.album?.images?.[0]?.url || '',
+    }));
+
+    res.json({ tracks: simplified });
+  } catch (error) {
+    console.error('Error searching Spotify:', error.response?.data || error.message);
+    res.status(500).json({
+      error: 'Failed to search Spotify',
+      details: error.response?.data || error.message,
+    });
+  }
 });
 
 module.exports = router;

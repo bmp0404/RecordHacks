@@ -23,6 +23,42 @@ router.get('/login', (req, res) => {
   res.redirect(`https://accounts.spotify.com/authorize?${authQueryParams}`);
 });
 
+// POST /auth/refresh
+router.post('/refresh', async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(400).json({ error: 'Refresh token is required' });
+  }
+
+  try {
+    const response = await axios.post(
+      'https://accounts.spotify.com/api/token',
+      new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
+
+    const { access_token, expires_in } = response.data;
+
+    res.json({
+      accessToken: access_token,
+      expiresAt: new Date(Date.now() + expires_in * 1000).toISOString(),
+    });
+  } catch (error) {
+    console.error('Error refreshing token:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to refresh access token' });
+  }
+});
+
 // Callback route: handles Spotify's response after authentication
 router.get('/callback', async (req, res) => {
   try {

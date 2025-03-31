@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { getValidAccessToken } from './helpers/spotifyAuth';
 import './App.css';
 import Jam from './components/Jam';
 import ChatBox from './components/Chatbox';
 import axios from 'axios'; // Add this import for axios
 
 
-// In the HomePage component - removed spotifyInput and setSpotifyInput
+// In the HomePage component 
 const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) => {
   const navigate = useNavigate();
 
@@ -86,67 +87,105 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
 };
 
 // Update DynamicPage to include a song name search instead of track ID input
-const DynamicPage = ({ title, bubbleId, defaultTrackId }) => {
+const DynamicPage = ({ title, bubbleId }) => {
   const navigate = useNavigate();
 
-  // read from localStorage once at mount
-  const [spotifyUserId] = useState(() => {
-    return localStorage.getItem('spotifyUserId') || '';
-  });
+  // Read user/token from localStorage (just once when component mounts)
+  const [spotifyUserId] = useState(() => localStorage.getItem('spotifyUserId') || '');
+  const [accessToken] = useState(() => localStorage.getItem('spotifyAccessToken') || '');
 
-  // Add state for the track ID and search input
-  const [trackId, setTrackId] = useState(defaultTrackId || '1KdjbgMfPmQQANYVS2IfTJ');
+  // Hardcode the track ID here
+  const [trackId, setTrackId] = useState('spotify:track:3n3Ppam7vgaVa1iaRUc9Lp');
+
+  // Optional search state if you're still doing track searching
   const [searchInput, setSearchInput] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
-  // Update the handleLeaveBubble function in the DynamicPage component
-const handleLeaveBubble = async () => {
-  // Always navigate home, regardless of whether the API call succeeds
-  const navigateHome = () => {
-    console.log('Navigating back to home');
-    navigate('/');
+  // A function inside DynamicPage to call your backend's /player/play
+  const playSong = async () => {
+    const accessToken = await getValidAccessToken(); // ⬅️ get fresh or valid token
+    if (!accessToken) {
+      console.error('No valid access token available');
+      return;
+    }
+  
+    try {
+      await axios.get('http://localhost:3001/player/play', {
+        params: {
+          accessToken,
+          trackId, // assumed to already be in "spotify:track:..." format
+        },
+      });
+      console.log('Song playing!');
+    } catch (error) {
+      console.error('Error playing song:', error.response?.data || error.message);
+    }
   };
-  
-  // If either bubbleId or spotifyUserId is missing, just go home without API call
-  if (!bubbleId || !spotifyUserId) {
-    console.log("Either bubbleId or spotifyUserId is missing, navigating without leaving bubble");
-    navigateHome();
-    return;
-  }
-  
-  try {
-    // Attempt to leave the bubble in the backend
-    await axios.put(`http://localhost:3001/bubbles/${bubbleId}/leave`, { userId: spotifyUserId });
-    console.log('Left bubble');
-    navigateHome();
-  } catch (error) {
-    console.error('Error leaving bubble:', error.response?.data || error.message);
-    // Still navigate home even if the API call fails
-    navigateHome();
-  }
-};
 
-  // Search for a track by name and get the top result's ID
+
+  // 3) UseEffect to automatically call "playSong" after render
+  useEffect(() => {
+    // Only attempt playback if we actually have an accessToken & trackId
+    if (accessToken && trackId) {
+      playSong();
+    }
+  }, [accessToken, trackId]); 
+
+  // leave bubble logic
+  const handleLeaveBubble = async () => {
+    const navigateHome = () => {
+      console.log('Navigating back to home');
+      navigate('/');
+    };
+
+    // If either bubbleId or spotifyUserId is missing, just go home
+    if (!bubbleId || !spotifyUserId) {
+      console.log('Either bubbleId or spotifyUserId is missing, navigating without leaving bubble');
+      navigateHome();
+      return;
+    }
+
+    try {
+      // Attempt to leave the bubble in the backend
+      await axios.put(`http://localhost:3001/bubbles/${bubbleId}/leave`, {
+        userId: spotifyUserId
+      });
+      console.log('Left bubble');
+      navigateHome();
+    } catch (error) {
+      console.error('Error leaving bubble:', error.response?.data || error.message);
+      navigateHome();
+    }
+  };
+
   const handleTrackSearch = async (e) => {
     e.preventDefault();
     if (!searchInput.trim()) return;
-
+  
     setIsSearching(true);
     setSearchError('');
-    
+  
     try {
-      // Send the search query to your backend, which will proxy to Spotify API
-      const response = await axios.get(`http://localhost:3001/player/search?q=${encodeURIComponent(searchInput)}`);
-      
-      if (response.data && response.data.tracks && response.data.tracks.items.length > 0) {
-        // Get the first (top) result's ID
-        const newTrackId = response.data.tracks.items[0].id;
-        console.log(`Found track: ${response.data.tracks.items[0].name} by ${response.data.tracks.items[0].artists[0].name}`);
-        
-        // Update the track ID state
-        setTrackId(newTrackId);
-        setSearchInput(''); // Clear input after successful search
+      const accessToken = await getValidAccessToken(); // ⬅️ get fresh or valid token
+      if (!accessToken) {
+        setSearchError('Unable to authenticate with Spotify.');
+        return;
+      }
+  
+      const response = await axios.get('http://localhost:3001/player/search', {
+        params: {
+          q: searchInput,
+          accessToken,
+        },
+      });
+  
+      const tracks = response.data.tracks;
+      if (tracks && tracks.length > 0) {
+        const topTrack = tracks[0];
+        console.log(`Found track: ${topTrack.name} by ${topTrack.artist}`);
+        setTrackId(topTrack.uri); // full URI (e.g., "spotify:track:...")
+        setSearchInput('');
       } else {
         setSearchError('No songs found matching that name. Try another search.');
       }
