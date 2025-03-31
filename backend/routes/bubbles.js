@@ -48,21 +48,18 @@ router.put('/:id/join', async (req, res) => {
   }
 });
 
-// Plays the current song in the bubble and displays information
+// GET /bubbles/:id - Get a bubble by ID (including currentTrack)
 router.get('/:id', async (req, res) => {
   try {
-    const { userId } = req.body;
     const bubble = await Bubble.findById(req.params.id);
+    
     if (!bubble) {
       return res.status(404).json({ error: 'Bubble not found' });
     }
-    if (!bubble.activeUsers.includes(userId)) {
-      bubble.activeUsers.push(userId);
-      await bubble.save();
-    }
-    return res.redirect(`/player/play?userId=${profileResponse.data.id}`)
+
+    res.json(bubble);
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching bubble:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -102,7 +99,29 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// 67e8e080f02e48494dea685e
+// update current track of bubble
+router.put('/:id/song', async (req, res) => {
+  try {
+    const { trackId } = req.body;
+    const bubble = await Bubble.findById(req.params.id);
+    if (!bubble) {
+      return res.status(404).json({ error: 'Bubble not found' });
+    }
+    if (!trackId || !trackId.startsWith('spotify:track:')) {
+      return res.status(400).json({ error: 'Invalid or missing trackId' });
+    }
+    if (bubble.currentTrack != trackId) {
+      bubble.currentTrack = trackId;
+      await bubble.save();
+    }
+    res.json(bubble);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 
 
 

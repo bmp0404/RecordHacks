@@ -111,10 +111,20 @@ const DynamicPage = ({ title, bubbleId }) => {
     }
   
     try {
+
+      const bubbleRes = await axios.get(`http://localhost:3001/bubbles/${bubbleId}`);
+      let currentTrackUri = bubbleRes.data.currentTrackId;
+      console.log('Current track URI:', currentTrackUri);
+
+      if (!currentTrackUri) {
+        console.warn('No current track URI found in bubble data, using default');
+        currentTrackUri = trackId; // Fallback to default trackId
+      }
+
       await axios.get('http://localhost:3001/player/play', {
         params: {
           accessToken,
-          trackId, // assumed to already be in "spotify:track:..." format
+          trackId: currentTrackUri, // assumed to already be in "spotify:track:..." format
         },
       });
       console.log('Song playing!');
@@ -124,14 +134,34 @@ const DynamicPage = ({ title, bubbleId }) => {
   };
 
 
-  // 3) UseEffect to automatically call "playSong" after render
   useEffect(() => {
-    // Only attempt playback if we actually have an accessToken & trackId
-    if (accessToken && trackId) {
-      playSong();
+    const autoPlay = async () => {
+      const accessToken = await getValidAccessToken();
+      if (!accessToken || !bubbleId) return;
+  
+      const bubbleRes = await axios.get(`http://localhost:3001/bubbles/${bubbleId}`);
+      const currentTrack = bubbleRes.data.currentTrack;
+  
+      if (currentTrack) {
+        console.log('Auto-playing on mount. Current track URI:', currentTrack);
+        await axios.get('http://localhost:3001/player/play', {
+          params: {
+            accessToken,
+            trackId: currentTrack,
+          },
+        });
+      } else {
+        console.warn('No current track set in bubble yet, skipping autoplay');
+      }
+    };
+  
+    // Only call if bubbleId exists (and not during an active manual search)
+    if (bubbleId && accessToken) {
+      autoPlay();
     }
-  }, [accessToken, trackId]); 
+  }, [bubbleId, accessToken]); 
 
+  
   // leave bubble logic
   const handleLeaveBubble = async () => {
     const navigateHome = () => {
@@ -173,6 +203,7 @@ const DynamicPage = ({ title, bubbleId }) => {
         return;
       }
   
+      // calls search from backend
       const response = await axios.get('http://localhost:3001/player/search', {
         params: {
           q: searchInput,
@@ -180,18 +211,51 @@ const DynamicPage = ({ title, bubbleId }) => {
         },
       });
   
+      // checks if successful serach
       const tracks = response.data.tracks;
       if (tracks && tracks.length > 0) {
         const topTrack = tracks[0];
         console.log(`Found track: ${topTrack.name} by ${topTrack.artist}`);
-        setTrackId(topTrack.uri); // full URI (e.g., "spotify:track:...")
+        setTrackId(topTrack.uri); // updates local storage, idk why we do this still
         setSearchInput('');
+  
+        if (bubbleId) {
+          // 🔄 Update currentTrack in bubble
+          await axios.put(`http://localhost:3001/bubbles/${bubbleId}/song`, {
+            trackId: topTrack.uri,
+          });
+          console.log('Bubble updated with new track:', topTrack.uri);
+  
+          // ✅ Re-fetch the updated bubble to ensure MongoDB write completed
+          const bubbleRes = await axios.get(`http://localhost:3001/bubbles/${bubbleId}`);
+          const currentTrack = bubbleRes.data.currentTrack;
+          console.log('Current track URI:', currentTrack);
+  
+          // ▶️ Play it if defined
+          if (currentTrack) {
+            await axios.get('http://localhost:3001/player/play', {
+              params: {
+                accessToken,
+                trackId: currentTrack,
+              },
+            });
+            console.log('Playing updated track');
+          } else {
+            console.warn('Bubble currentTrack is still undefined. Using fallback.');
+            await axios.get('http://localhost:3001/player/play', {
+              params: {
+                accessToken,
+                trackId: topTrack.uri,
+              },
+            });
+          }
+        }
       } else {
         setSearchError('No songs found matching that name. Try another search.');
       }
     } catch (error) {
-      console.error('Error searching for track:', error);
-      setSearchError('Unable to search for songs right now. Please try again later.');
+      console.error('Error searching or updating bubble track:', error);
+      setSearchError('Unable to search or play song. Try again later.');
     } finally {
       setIsSearching(false);
     }
