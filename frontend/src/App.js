@@ -86,10 +86,16 @@ const HomePage = ({ dynamicPages, newPageName, setNewPageName, createNewPage }) 
 };
 
 // Update DynamicPage to include a song name search instead of track ID input
-const DynamicPage = ({ title, spotifyId, bubbleId, currentUserId }) => {
+const DynamicPage = ({ title, bubbleId, defaultTrackId }) => {
   const navigate = useNavigate();
+
+  // read from localStorage once at mount
+  const [spotifyUserId] = useState(() => {
+    return localStorage.getItem('spotifyUserId') || '';
+  });
+
   // Add state for the track ID and search input
-  const [trackId, setTrackId] = useState(spotifyId || '1KdjbgMfPmQQANYVS2IfTJ');
+  const [trackId, setTrackId] = useState(defaultTrackId || '1KdjbgMfPmQQANYVS2IfTJ');
   const [searchInput, setSearchInput] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
@@ -102,16 +108,16 @@ const handleLeaveBubble = async () => {
     navigate('/');
   };
   
-  // If either bubbleId or currentUserId is missing, just go home without API call
-  if (!bubbleId || !currentUserId) {
-    console.log("Either bubbleId or currentUserId is missing, navigating without leaving bubble");
+  // If either bubbleId or spotifyUserId is missing, just go home without API call
+  if (!bubbleId || !spotifyUserId) {
+    console.log("Either bubbleId or spotifyUserId is missing, navigating without leaving bubble");
     navigateHome();
     return;
   }
   
   try {
     // Attempt to leave the bubble in the backend
-    await axios.put(`http://localhost:3001/bubbles/${bubbleId}/leave`, { userId: currentUserId });
+    await axios.put(`http://localhost:3001/bubbles/${bubbleId}/leave`, { userId: spotifyUserId });
     console.log('Left bubble');
     navigateHome();
   } catch (error) {
@@ -316,14 +322,18 @@ const LoginPage = () => {
       if (event.origin !== 'http://localhost:3001') return;
   
       // event.data should contain your tokens or user info
-      const { access_token, refresh_token, expiresAt, spotifyId, displayName } = event.data;
+      const { accessToken, refreshToken, expiresAt, spotifyId, displayName } = event.data;
       console.log('Received tokens:', event.data);
+
+      // Store them in localStorage so persist across reloads
+      localStorage.setItem('spotifyAccessToken', accessToken);
+      localStorage.setItem('spotifyRefreshToken', refreshToken);
+      localStorage.setItem('spotifyExpiresAt', expiresAt);
+      localStorage.setItem('spotifyUserId', spotifyId);
+      localStorage.setItem('spotifyDisplayName', displayName);
   
-      // Now you can update your frontend state (e.g., store tokens, update user context, etc.)
-      // For example:
-      // setAuthData({ access_token, refresh_token, expiresAt, spotifyId, displayName });
       
-      // Optionally navigate to the dashboard
+      // navigate back to home page
       navigate('/');
     });
   };
@@ -500,7 +510,6 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
                   title={page.title} 
                   spotifyId={page.spotifyId} 
                   bubbleId={page.bubbleId} // Add the bubbleId
-                  currentUserId="user123" // Replace with actual user ID from your auth system
                 />
               }
             />

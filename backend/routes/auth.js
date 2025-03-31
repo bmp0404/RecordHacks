@@ -97,10 +97,7 @@ router.get('/callback', async (req, res) => {
       </html>
     `);
 
-    // 6. playing song
-    
-
-    
+  
   } catch (error) {
     console.error('Authentication error:', error);
     res.status(500).send('Authentication failed');

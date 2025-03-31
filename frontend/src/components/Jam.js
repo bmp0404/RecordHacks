@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const Jam = ({ destination, label, color, size, x, y, highlight, bubbleId, currentUserId }) => {
+const Jam = ({ destination, label, color, size, x, y, highlight, bubbleId }) => {
   const navigate = useNavigate();
+
+    // Read from localStorage when the component mounts
+    const [spotifyUserId] = useState(() => {
+      return localStorage.getItem('spotifyUserId') || '';
+    });
 
   const handleClick = async (e) => {
     e.preventDefault();
@@ -15,16 +20,16 @@ const Jam = ({ destination, label, color, size, x, y, highlight, bubbleId, curre
       navigate(destination);
     };
 
-    // If we don't have both bubbleId and currentUserId, just navigate without joining
-    if (!bubbleId || !currentUserId) {
-      console.log("Either bubbleId or currentUserId is missing, navigating without joining bubble");
+    // If we don't have both bubbleId and spotifyUserId, just navigate without joining
+    if (!bubbleId || !spotifyUserId) {
+      console.log("Either bubbleId or spotifyUserId is missing, navigating without joining bubble");
       navigateToDestination();
       return;
     }
     
     try {
       // PUT request to join the bubble
-      const response = await axios.put(`http://localhost:3001/bubbles/${bubbleId}/join`, { userId: currentUserId });
+      const response = await axios.put(`http://localhost:3001/bubbles/${bubbleId}/join`, { userId: spotifyUserId });
       console.log('Joined bubble:', response.data);
       // Navigate to the destination route for this bubble
       navigateToDestination();
