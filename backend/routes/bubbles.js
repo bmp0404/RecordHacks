@@ -101,24 +101,24 @@ router.delete('/:id', async (req, res) => {
 
 // update current track of bubble
 router.put('/:id/song', async (req, res) => {
-  try {
-    const { trackId } = req.body;
-    const bubble = await Bubble.findById(req.params.id);
-    if (!bubble) {
-      return res.status(404).json({ error: 'Bubble not found' });
-    }
-    if (!trackId || !trackId.startsWith('spotify:track:')) {
-      return res.status(400).json({ error: 'Invalid or missing trackId' });
-    }
-    if (bubble.currentTrack != trackId) {
-      bubble.currentTrack = trackId;
-      await bubble.save();
-    }
-    res.json(bubble);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Server error' });
+  const { trackId, name, artist, albumArt } = req.body;
+
+  if (!trackId || !trackId.startsWith('spotify:track:')) {
+    return res.status(400).json({ error: 'Invalid or missing trackId' });
   }
+
+  const bubble = await Bubble.findById(req.params.id);
+  if (!bubble) {
+    return res.status(404).json({ error: 'Bubble not found' });
+  }
+
+  bubble.currentTrack = trackId;
+  bubble.currentTrackName = name || '';
+  bubble.currentTrackArtist = artist || '';
+  bubble.currentTrackPhoto = albumArt || '';
+
+  await bubble.save();
+  res.json(bubble);
 });
 
 

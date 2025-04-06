@@ -94,7 +94,7 @@ const DynamicPage = ({ title, bubbleId }) => {
   const [spotifyUserId] = useState(() => localStorage.getItem('spotifyUserId') || '');
   const [accessToken] = useState(() => localStorage.getItem('spotifyAccessToken') || '');
 
-  // Hardcode the track ID here
+  // Default track ID: Mr. Brightside
   const [trackId, setTrackId] = useState('spotify:track:3n3Ppam7vgaVa1iaRUc9Lp');
 
   // Optional search state if you're still doing track searching
@@ -102,32 +102,51 @@ const DynamicPage = ({ title, bubbleId }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
+  // Default current track info: Mr. Brightside
+  const [currentTrackInfo, setCurrentTrackInfo] = useState({
+    name: 'Mr. Brightside',
+    artist: 'The Killers',
+    albumArt: 'https://i.scdn.co/image/ab67616d0000b273ccdddd46119a4ff53eaf1f5d',
+  });
+
   // A function inside DynamicPage to call your backend's /player/play
   const playSong = async () => {
-    const accessToken = await getValidAccessToken(); // ⬅️ get fresh or valid token
-    if (!accessToken) {
-      console.error('No valid access token available');
+    const accessToken = await getValidAccessToken(); // get fresh or valid token
+    if (!accessToken || !bubbleId) {
+      console.error('Missing access token or bubble ID');
       return;
     }
   
     try {
-
+      // Get current bubble info
       const bubbleRes = await axios.get(`http://localhost:3001/bubbles/${bubbleId}`);
-      let currentTrackUri = bubbleRes.data.currentTrackId;
+      let currentTrackUri = bubbleRes.data.currentTrack;
+  
       console.log('Current track URI:', currentTrackUri);
-
+  
+      // Fallback if no track is set
       if (!currentTrackUri) {
         console.warn('No current track URI found in bubble data, using default');
-        currentTrackUri = trackId; // Fallback to default trackId
+        currentTrackUri = trackId;
       }
-
+  
+      // Play the song
       await axios.get('http://localhost:3001/player/play', {
         params: {
           accessToken,
-          trackId: currentTrackUri, // assumed to already be in "spotify:track:..." format
+          trackId: currentTrackUri,
         },
       });
+  
       console.log('Song playing!');
+  
+      // OPTIONAL: Update UI with track info from bubble
+      setCurrentTrackInfo({
+        name: bubbleRes.data.currentTrackName || 'Unknown Track',
+        artist: bubbleRes.data.currentTrackArtist || 'Unknown Artist',
+        albumArt: bubbleRes.data.currentTrackPhoto || '',
+      });
+  
     } catch (error) {
       console.error('Error playing song:', error.response?.data || error.message);
     }
@@ -216,49 +235,52 @@ const DynamicPage = ({ title, bubbleId }) => {
       if (tracks && tracks.length > 0) {
         const topTrack = tracks[0];
         console.log(`Found track: ${topTrack.name} by ${topTrack.artist}`);
-        setTrackId(topTrack.uri); // updates local storage, idk why we do this still
+        setTrackId(topTrack.uri);
         setSearchInput('');
-  
+
         if (bubbleId) {
-          // 🔄 Update currentTrack in bubble
+          // 🔄 Update currentTrack and its metadata in the bubble
           await axios.put(`http://localhost:3001/bubbles/${bubbleId}/song`, {
             trackId: topTrack.uri,
+            name: topTrack.name,
+            artist: topTrack.artist,
+            albumArt: topTrack.albumArt,
           });
-          console.log('Bubble updated with new track:', topTrack.uri);
-  
-          // ✅ Re-fetch the updated bubble to ensure MongoDB write completed
-          const bubbleRes = await axios.get(`http://localhost:3001/bubbles/${bubbleId}`);
-          const currentTrack = bubbleRes.data.currentTrack;
-          console.log('Current track URI:', currentTrack);
-  
-          // ▶️ Play it if defined
-          if (currentTrack) {
-            await axios.get('http://localhost:3001/player/play', {
-              params: {
-                accessToken,
-                trackId: currentTrack,
-              },
-            });
-            console.log('Playing updated track');
-          } else {
-            console.warn('Bubble currentTrack is still undefined. Using fallback.');
-            await axios.get('http://localhost:3001/player/play', {
-              params: {
-                accessToken,
-                trackId: topTrack.uri,
-              },
-            });
-          }
-        }
+          console.log('Bubble updated with full track info:', topTrack.uri);
+
+          // ✅ Update local display state
+          setCurrentTrackInfo({
+            name: topTrack.name,
+            artist: topTrack.artist,
+            albumArt: topTrack.albumArt,
+          });
+
+          // display updated track info in console
+          console.log('Updated trackName:', topTrack.name);
+          console.log('Updated trackArtist:', topTrack.artist);
+          console.log('Updated trackAlbumArt:', topTrack.albumArt);
+
+          // ▶️ Play the song
+          await axios.get('http://localhost:3001/player/play', {
+            params: {
+            accessToken,
+            trackId: topTrack.uri,
+          },
+        });
+        console.log('Playing updated track');
+      }
+
       } else {
-        setSearchError('No songs found matching that name. Try another search.');
+      setSearchError('No songs found matching that name. Try another search.');
       }
     } catch (error) {
-      console.error('Error searching or updating bubble track:', error);
-      setSearchError('Unable to search or play song. Try again later.');
+    console.error('Error searching or updating bubble track:', error);
+    setSearchError('Unable to search or play song. Try again later.');
     } finally {
-      setIsSearching(false);
+    setIsSearching(false);
     }
+
+
   };
 
   return (
@@ -623,6 +645,7 @@ const AppContent = ({ dynamicPages, newPageName, setNewPageName, createNewPage }
   );
 };
 
+// where we create new bubbles, and make call to backend to create new bubble
 function App() {
   // State to store dynamically created pages
   const [dynamicPages, setDynamicPages] = useState([
