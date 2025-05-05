@@ -7,12 +7,73 @@ const Bubble = require('../models/Bubble');
 // Create a bubble: POST /bubbles
 router.post('/', async (req, res) => {
   try {
-    const { genreName } = req.body;
-    const newBubble = await Bubble.create({ genreName, activeUsers: [], currentTrack: 'spotify:track:3n3Ppam7vgaVa1iaRUc9Lp',  });
+    const { genreName, xCoordinate, yCoordinate, color } = req.body;
+    // simple validation
+    if ( !genreName || xCoordinate == null || yCoordinate == null || !color
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'genreName, xCoordinate, yCoordinate and color are all required.' });
+    }
+
+    const newBubble = await Bubble.create({
+      genreName,
+      activeUsers: [],
+      currentTrack: 'spotify:track:3n3Ppam7vgaVa1iaRUc9Lp',
+      xCoordinate,
+      yCoordinate,
+      color,
+    });
+
     return res.status(201).json(newBubble);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update a bubble: PUT /bubbles/:id
+router.put('/:id', async (req, res) => {
+  try {
+    const { genreName, activeUsers, currentTrack, currentTrackPhoto, currentTrackName,
+      currentTrackArtist, xCoordinate, yCoordinate, color, } = req.body;
+
+    // optional: validate required fields are present
+    if (
+      genreName == null ||
+      xCoordinate == null ||
+      yCoordinate == null ||
+      color == null
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'genreName, xCoordinate, yCoordinate and color are all required.' });
+    }
+
+    const updatedBubble = await Bubble.findByIdAndUpdate(
+      req.params.id,
+      {
+        genreName,
+        activeUsers,
+        currentTrack,
+        currentTrackPhoto,
+        currentTrackName,
+        currentTrackArtist,
+        xCoordinate,
+        yCoordinate,
+        color,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedBubble) {
+      return res.status(404).json({ error: 'Bubble not found' });
+    }
+
+    return res.json(updatedBubble);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -48,7 +109,7 @@ router.put('/:id/join', async (req, res) => {
   }
 });
 
-// GET /bubbles/:id - Get a bubble by ID (including currentTrack)
+// GET /bubbles/:id - Get a bubble by ID 
 router.get('/:id', async (req, res) => {
   try {
     const bubble = await Bubble.findById(req.params.id);

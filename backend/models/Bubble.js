@@ -10,8 +10,11 @@ const bubbleSchema = new Schema({
   currentTrackPhoto: { type: String, required: false },
   currentTrackName: { type: String, required: false },
   currentTrackArtist: { type: String, required: false },
+  xCoordinate: { type: Number, required: true },
+  yCoordinate: { type: Number, required: true },
+  color: { type: String, required: true },
   // Optionally, add more fields later (like currentTrack, queue, etc.)
-}, { timestamps: true });
+}, { timestamps: false });
 
 
 module.exports = mongoose.models.Bubble || mongoose.model('Bubble', bubbleSchema);
