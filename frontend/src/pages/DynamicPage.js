@@ -31,7 +31,7 @@ export default function DynamicPage({ title, bubbleId }) {
             albumArt: bubble.currentTrackPhoto
           });
           await axios.get('http://localhost:3001/player/play', {
-            params: { accessToken: token, trackId: bubble.currentTrack }
+            params: { accessToken: token, trackId: bubble.currentTrack, bubbleId }
           });
         }
         else {
@@ -91,7 +91,7 @@ export default function DynamicPage({ title, bubbleId }) {
           albumArt: topTrack.albumArt
         });
         await axios.get('http://localhost:3001/player/play', {
-          params: { accessToken: token, trackId: topTrack.uri }
+          params: { accessToken: token, trackId: topTrack.uri, bubbleId }
         });
       }
     } catch (err) {

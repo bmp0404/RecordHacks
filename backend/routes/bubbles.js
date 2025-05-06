@@ -9,7 +9,7 @@ router.post('/', async (req, res) => {
   try {
     const { genreName, xCoordinate, yCoordinate, color } = req.body;
     // simple validation
-    if ( !genreName || xCoordinate == null || yCoordinate == null || !color
+    if (!genreName || xCoordinate == null || yCoordinate == null || !color
     ) {
       return res
         .status(400)
@@ -113,7 +113,7 @@ router.put('/:id/join', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const bubble = await Bubble.findById(req.params.id);
-    
+
     if (!bubble) {
       return res.status(404).json({ error: 'Bubble not found' });
     }
@@ -148,7 +148,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const bubble = await Bubble.findByIdAndDelete(req.params.id);
     if (!bubble) {
-      return res.status(404).json({error: 'Bubble not found'});
+      return res.status(404).json({ error: 'Bubble not found' });
     }
     else {
       const bubbles = await Bubble.find({});
@@ -177,6 +177,9 @@ router.put('/:id/song', async (req, res) => {
   bubble.currentTrackName = name || '';
   bubble.currentTrackArtist = artist || '';
   bubble.currentTrackPhoto = albumArt || '';
+
+  // reset time for new song
+  bubble.startTime = new Date();
 
   await bubble.save();
   res.json(bubble);

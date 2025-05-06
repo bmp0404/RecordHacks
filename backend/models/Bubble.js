@@ -6,14 +6,14 @@ const { Schema } = mongoose;
 const bubbleSchema = new Schema({
   genreName: { type: String, required: true },
   activeUsers: [{ type: String }], // Array of user IDs (as strings)
-  currentTrack: { type: String, required: false},
+  currentTrack: { type: String, required: false },
   currentTrackPhoto: { type: String, required: false },
   currentTrackName: { type: String, required: false },
   currentTrackArtist: { type: String, required: false },
   xCoordinate: { type: Number, required: true },
   yCoordinate: { type: Number, required: true },
   color: { type: String, required: true },
-  // Optionally, add more fields later (like currentTrack, queue, etc.)
+  startTime: { type: Date, required: true, default: Date.now },
 }, { timestamps: false });
 
 
