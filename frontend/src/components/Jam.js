@@ -2,82 +2,123 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const Jam = ({ destination, label, color, size, x, y, highlight, bubbleId }) => {
+export default function Jam({
+  destination,   // where to navigate on successful join
+  label,         // bubble text
+  color,         // bubble background color
+  size,          // bubble diameter
+  x, y,          // bubble coordinates
+  highlight,     // whether to apply highlight styles
+  bubbleId       // ID used by backend for join
+}) {
   const navigate = useNavigate();
 
-    // Read from localStorage when the component mounts
-    const [spotifyUserId] = useState(() => {
-      return localStorage.getItem('spotifyUserId') || '';
-    });
+  // grab spotifyUserId once on mount (or empty string if not set)
+  const [spotifyUserId] = useState(
+    () => localStorage.getItem('spotifyUserId') || ''
+  );
 
+  // state to control whether the login‐prompt overlay is showing
+  const [loginPrompt, setLoginPrompt] = useState(false);
+
+  // handle clicks on the bubble
   const handleClick = async (e) => {
     e.preventDefault();
-    console.log("Jam clicked, bubbleId:", bubbleId); // Debug: check if bubbleId is defined
-    
-    // Always navigate, regardless of userId
-    const navigateToDestination = () => {
-      console.log('Navigating to:', destination);
-      navigate(destination);
-    };
 
-    // If we don't have both bubbleId and spotifyUserId, just navigate without joining
-    if (!bubbleId || !spotifyUserId) {
-      console.log("Either bubbleId or spotifyUserId is missing, navigating without joining bubble");
-      navigateToDestination();
+    // 1) If no Spotify ID, show overlay and bail
+    if (!spotifyUserId) {
+      setLoginPrompt(true);
       return;
     }
-    
+
+    // 2) If somehow bubbleId is missing, log an error and bail
+    if (!bubbleId) {
+      console.error('No bubbleId provided');
+      return;
+    }
+
+    // 3) Otherwise, attempt to join via backend
     try {
-      // PUT request to join the bubble
-      const response = await axios.put(`http://localhost:3001/bubbles/${bubbleId}/join`, { userId: spotifyUserId });
-      console.log('Joined bubble:', response.data);
-      // Navigate to the destination route for this bubble
-      navigateToDestination();
+      await axios.put(
+        `http://localhost:3001/bubbles/${bubbleId}/join`,
+        { userId: spotifyUserId }
+      );
+      // 4) On success, navigate to the bubble’s page
+      navigate(destination);
     } catch (error) {
-      console.error('Error joining bubble:', error.response?.data || error.message);
-      // Still navigate even if joining the bubble fails
-      navigateToDestination();
+      console.error(
+        'Error joining bubble:',
+        error.response?.data || error.message
+      );
+      // still navigate even if join fails
+      navigate(destination);
     }
   };
 
   return (
-    <div
-      className={`jam-component ${highlight ? 'jam-highlight' : ''}`}
-      style={{
-        position: 'absolute',
-        left: `${x}px`,
-        top: `${y}px`,
-        width: `${size}px`,
-        height: `${size}px`,
-        backgroundColor: color,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
-        textDecoration: 'none',
-        fontWeight: 'bold',
-        fontSize: `${Math.min(size / 8, 20)}px`,
-        textAlign: 'center',
-        boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
-        transition: 'transform 0.3s, box-shadow 0.3s, filter 0.5s',
-        zIndex: highlight ? 10 : 1,
-        animation: highlight ? 'pulseHighlight 2s' : 'none',
-        cursor: 'pointer'
-      }}
-      onClick={handleClick}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'scale(1.05)';
-        e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.4)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'scale(1)';
-        e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3)';
-      }}
-    >
-      {label}
-    </div>
-  );
-};
+    <>
+      {/* —————— Bubble Circle —————— */}
+      <div
+        className={`jam-component ${highlight ? 'jam-highlight' : ''}`}
+        style={{
+          position: 'absolute',
+          left: `${x}px`,
+          top: `${y}px`,
+          width: `${size}px`,
+          height: `${size}px`,
+          backgroundColor: color,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
+          transition: 'transform 0.3s, box-shadow 0.3s',
+          zIndex: highlight ? 10 : 1,
+        }}
+        onClick={handleClick}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.4)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3)';
+        }}
+      >
+        {label}
+      </div>
 
-export default Jam;
+      {/* —————— Login Prompt Overlay —————— */}
+      {loginPrompt && (
+        <div className="login-prompt-overlay">
+          <div className="login-prompt">
+            {/* Instruction */}
+            <p>Please log in with Spotify to join a Jam.</p>
+
+            {/* Go to login page */}
+            <button
+              className="spotify-btn"
+              onClick={() => {
+                setLoginPrompt(false);
+                navigate('/login');
+              }}
+            >
+              Log in
+            </button>
+
+            {/* Simply close the prompt */}
+            <button
+              className="dismiss-btn"
+              onClick={() => setLoginPrompt(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

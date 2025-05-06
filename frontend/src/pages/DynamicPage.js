@@ -2,18 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { getValidAccessToken } from '../helpers/spotifyAuth';
-import SpotifyEmbed    from '../components/SpotifyEmbed';
+import SpotifyEmbed from '../components/SpotifyEmbed';
 import TrackSearchForm from '../components/TrackSearchForm';
-import ChatBox         from '../components/Chatbox';
+import ChatBox from '../components/Chatbox';
 import TrackDisplay from '../components/TrackDisplay';
 
 export default function DynamicPage({ title, bubbleId }) {
   const navigate = useNavigate();
   const [spotifyUserId] = useState(() => localStorage.getItem('spotifyUserId') || '');
-  const [accessToken]   = useState(() => localStorage.getItem('spotifyAccessToken') || '');
-  const [currentTrackInfo, setCurrentTrackInfo] = useState({ uri:'', name:'', artist:'', albumArt:'' });
+  const [accessToken] = useState(() => localStorage.getItem('spotifyAccessToken') || '');
+  const [currentTrackInfo, setCurrentTrackInfo] = useState({ uri: '', name: '', artist: '', albumArt: '' });
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [showDevicePrompt, setShowDevicePrompt] = useState(false);
 
   // Auto-play on mount if a track exists
   useEffect(() => {
@@ -33,8 +34,16 @@ export default function DynamicPage({ title, bubbleId }) {
             params: { accessToken: token, trackId: bubble.currentTrack }
           });
         }
+        else {
+          return;
+        }
       } catch (err) {
-        console.error(err);
+        if (err.response?.status === 500) {
+          setShowDevicePrompt(true);
+        }
+        else {
+          console.error(err);
+        }
       }
     }
     autoPlay();
@@ -86,15 +95,20 @@ export default function DynamicPage({ title, bubbleId }) {
         });
       }
     } catch (err) {
-      console.error(err);
-      setSearchError('Error searching or playing track');
+      if (err.response?.status === 500) {
+        setShowDevicePrompt(true);
+      }
+      else {
+        console.error(err);
+        setSearchError('Error searching or playing track');
+      }
     } finally {
       setIsSearching(false);
     }
   };
 
   return (
-    <div className="dynamic-page" style={{ 
+    <div className="dynamic-page" style={{
       padding: '50px 20px 40px', // top, horizontal, bottom
       fontFamily: 'Arial, sans-serif',
       color: '#ffffff',
@@ -109,10 +123,10 @@ export default function DynamicPage({ title, bubbleId }) {
         textAlign: 'center',
         marginBottom: '1rem',
         fontFamily: '"Segoe UI", sans-serif'
-    }}>
+      }}>
         {title || 'Untitled Jam'}
       </h1>
-  
+
       {/* Main Content Layout */}
       <div className="content-container" style={{
         display: 'flex',
@@ -125,17 +139,17 @@ export default function DynamicPage({ title, bubbleId }) {
       }}>
         {/* Left column: Embed + Search */}
         <div className="left-col" style={{ flex: 1, minWidth: '300px', maxWidth: '500px' }}>
-        <TrackDisplay name={currentTrackInfo.name}artist={currentTrackInfo.artist}albumArt={currentTrackInfo.albumArt}
-/>
+          <TrackDisplay name={currentTrackInfo.name} artist={currentTrackInfo.artist} albumArt={currentTrackInfo.albumArt}
+          />
           <TrackSearchForm onSearch={handleTrackSearch} error={searchError} busy={isSearching} />
         </div>
-  
+
         {/* Right column: Chat */}
         <div className="right-col" style={{ flex: 1, minWidth: '300px', maxWidth: '500px' }}>
           <ChatBox jamId={title.toLowerCase().replace(/\s+/g, '-')} height="450px" />
         </div>
       </div>
-  
+
       {/* Back Button */}
       <button
         onClick={handleLeaveBubble}
@@ -157,6 +171,21 @@ export default function DynamicPage({ title, bubbleId }) {
       >
         ← Back to Home
       </button>
+
+      {/* Device Prompt */}
+      {showDevicePrompt && (
+        <div className="device-prompt-overlay">
+          <div className="device-prompt">
+            <p>Please open your Spotify app to play music.</p>
+            <button
+              className="dismiss-btn"
+              onClick={() => setShowDevicePrompt(false)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
