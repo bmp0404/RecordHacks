@@ -4,6 +4,8 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import AppContent from './AppContent';
 import './App.css';
 
+const server_URL = process.env.server_URL || 'http://localhost:3001'
+
 export default function App() {
 
   // 1) Start with no bubbles
@@ -14,7 +16,7 @@ export default function App() {
   useEffect(() => {
     const loadBubbles = async () => {
       try {
-        const res = await axios.get('http://localhost:3001/bubbles');
+        const res = await axios.get(`${server_URL}/bubbles`);
         const pages = res.data.map(bubble => ({
           id: bubble._id,  // use the MongoDB _id as your React key
           title: bubble.genreName,
@@ -53,7 +55,7 @@ export default function App() {
     const color = '#'+Math.floor(Math.random()*16777215).toString(16);
 
     try {
-      const res = await axios.post('http://localhost:3001/bubbles', {
+      const res = await axios.post(`${server_URL}/bubbles`, {
         genreName: newPageName,
         xCoordinate: x,
         yCoordinate: y,
